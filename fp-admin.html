@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -562,7 +562,7 @@ function renderLiveRace(){document.querySelectorAll('.page').forEach(function(p)
       <button class="btn btn-secondary btn-sm" onclick="adminLoadFantasy()">↻ Refresh</button>
     </div>
     <table class="data-table">
-      <thead><tr><th>#</th><th>Username</th><th>FP1 Pick</th><th>FP2 Pick</th><th>Fantasy Pts</th><th>Joined</th><th>Actions</th></tr></thead>
+      <thead><tr><th>#</th><th>Username</th><th>FP1 Pick</th><th>FP2 Pick</th><th>Fantasy Pts</th><th>Credits</th><th>Cards</th><th>Actions</th></tr></thead>
       <tbody id="fantasy-admin-tbody"></tbody>
     </table>
   </div>
@@ -2110,6 +2110,41 @@ function saveAllAsync(){
       body:JSON.stringify(DB)
     }).then(()=>resolve()).catch(()=>resolve());
   });
+}
+
+
+// ════════════════════════════════════════════════
+// GIVE CREDITS
+// ════════════════════════════════════════════════
+function openGiveCredits(username){
+  const user = FADMIN_USERS.find(u=>u.username===username);
+  if(!user) return;
+  document.getElementById('credits-username').value = username;
+  document.getElementById('credits-username-display').textContent = username;
+  document.getElementById('credits-current').textContent = (user.credits||0).toLocaleString() + ' Credits';
+  document.getElementById('credits-amount').value = 100;
+  openModal('modal-credits');
+}
+
+async function confirmGiveCredits(){
+  const username = document.getElementById('credits-username').value;
+  const amount = parseInt(document.getElementById('credits-amount').value)||0;
+  if(amount<=0){ toast('Enter a valid amount.','error'); return; }
+  const user = FADMIN_USERS.find(u=>u.username===username);
+  if(!user){ toast('User not found.','error'); return; }
+  user.credits = (user.credits||0) + amount;
+  try{
+    await fetch(`https://api.jsonbin.io/v3/b/${FANTASY_BIN_ID}`,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_KEY},
+      body:JSON.stringify({users:FADMIN_USERS})
+    });
+    closeModal('modal-credits');
+    adminLoadFantasy();
+    toast(`Gave ${amount} credits to ${username}!`);
+  }catch(e){
+    toast('Failed to save credits.','error');
+  }
 }
 
 // ════════════════════════════════════════════════
