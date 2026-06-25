@@ -498,57 +498,56 @@ function renderLiveRace(){document.querySelectorAll('.page').forEach(function(p)
 
 <!-- TRADING CARDS -->
 <div class="page" id="page-cards">
-  <div class="grid-2" style="margin-bottom:16px">
-    <div class="card" style="margin:0">
-      <div class="card-header">
-        <div class="card-title">🃏 DRIVER CARDS — <span id="cards-div-lbl" style="color:var(--red)">FP 1</span></div>
-        <button class="btn btn-primary btn-sm" onclick="openAddCard()">+ Add Card</button>
-      </div>
-      <div class="card-body" style="padding:12px">
-        <div style="font-size:12px;color:var(--sub);margin-bottom:12px">Cards are generated automatically from driver data. You can override the photo URL and add a custom tagline per driver here.</div>
-        <table class="data-table">
-          <thead><tr><th>Driver</th><th>Div</th><th>Rarity</th><th>Photo</th><th>Tagline</th><th>Actions</th></tr></thead>
-          <tbody id="cards-tbody"></tbody>
-        </table>
-      </div>
-    </div>
-    <div class="card" style="margin:0">
-      <div class="card-header"><div class="card-title">CARD PREVIEW</div></div>
-      <div class="card-body" id="card-preview-body" style="display:flex;justify-content:center;align-items:flex-start;min-height:200px;padding:20px">
-        <div style="color:var(--sub);font-size:13px;align-self:center">Select a driver to preview their card.</div>
-      </div>
-    </div>
-  </div>
+  <!-- Card Library -->
   <div class="card">
     <div class="card-header">
-      <div class="card-title">PACK SETTINGS</div>
-    </div>
-    <div class="card-body">
-      <div style="font-size:12px;color:var(--sub);margin-bottom:16px">Configure rarity thresholds. Positions are ranked within each division.</div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">⭐ Legendary — Position</label>
-          <select class="form-select" id="rarity-legendary">
-            <option value="1" selected>P1 only</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">💜 Epic — Positions</label>
-          <select class="form-select" id="rarity-epic">
-            <option value="3" selected>P2–P3</option>
-            <option value="5">P2–P5</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">🔵 Rare — Positions</label>
-          <select class="form-select" id="rarity-rare">
-            <option value="6" selected>P4–P6</option>
-            <option value="8">P4–P8</option>
-          </select>
-        </div>
+      <div class="card-title">🃏 CARD LIBRARY <span id="cards-count-lbl" style="color:var(--sub);font-size:9px;margin-left:8px"></span></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary btn-sm" onclick="renderCards()">↻ Refresh</button>
+        <button class="btn btn-primary btn-sm" onclick="openAddCard()">+ New Card</button>
       </div>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <button class="btn btn-secondary btn-sm" onclick="toast('Rarity settings are applied live on the public site.')">ℹ Current settings active</button>
+    </div>
+    <div style="padding:0">
+      <table class="data-table" id="cards-library-table">
+        <thead><tr><th>ID</th><th>Name</th><th>Code</th><th>Team</th><th>Div</th><th>Rarity</th><th>Photo</th><th>PTS</th><th>W</th><th>Poles</th><th>Pods</th><th>Actions</th></tr></thead>
+        <tbody id="cards-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+  <!-- Give Cards / Packs to Players -->
+  <div class="grid-2">
+    <div class="card" style="margin:0">
+      <div class="card-header"><div class="card-title">🎁 GIVE SPECIFIC CARD</div></div>
+      <div class="card-body">
+        <div class="form-group">
+          <label class="form-label">Player</label>
+          <select class="form-select" id="give-card-player"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Card</label>
+          <select class="form-select" id="give-card-select"></select>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-bottom:12px">Player will receive this card added directly to their collection.</div>
+        <button class="btn btn-success" onclick="giveCardToPlayer()">Give Card</button>
+      </div>
+    </div>
+    <div class="card" style="margin:0">
+      <div class="card-header"><div class="card-title">📦 GIVE PACK</div></div>
+      <div class="card-body">
+        <div class="form-group">
+          <label class="form-label">Player</label>
+          <select class="form-select" id="give-pack-player"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Pack Type</label>
+          <select class="form-select" id="give-pack-type">
+            <option value="standard">📦 Standard (5 cards — any rarity)</option>
+            <option value="premium">💜 Premium (5 cards — guaranteed Epic+)</option>
+            <option value="elite">⭐ Elite (5 cards — guaranteed Legendary)</option>
+          </select>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-bottom:12px">Credits will NOT be deducted. Cards are added directly to their collection.</div>
+        <button class="btn btn-success" onclick="givePackToPlayer()">Give Pack</button>
       </div>
     </div>
   </div>
@@ -562,7 +561,7 @@ function renderLiveRace(){document.querySelectorAll('.page').forEach(function(p)
       <button class="btn btn-secondary btn-sm" onclick="adminLoadFantasy()">↻ Refresh</button>
     </div>
     <table class="data-table">
-      <thead><tr><th>#</th><th>Username</th><th>FP1 Pick</th><th>FP2 Pick</th><th>Fantasy Pts</th><th>Credits</th><th>Cards</th><th>Actions</th></tr></thead>
+      <thead><tr><th>#</th><th>Username</th><th>FP1 Pick</th><th>FP2 Pick</th><th>Fantasy Pts</th><th>Credits</th><th>Cards</th><th>Joined</th><th>Actions</th></tr></thead>
       <tbody id="fantasy-admin-tbody"></tbody>
     </table>
   </div>
@@ -964,6 +963,7 @@ function sanitizeDB(data){
   });
   if(!data.hallOfFame) data.hallOfFame=[];
   if(!Array.isArray(data.hallOfFame)) data.hallOfFame=Object.values(data.hallOfFame);
+  if(!data.cards) data.cards=[];
   if(!data.settings) data.settings=DEFAULT.settings;
   if(!Array.isArray(data.points)) data.points=DEFAULT.points;
   return data;
@@ -1803,111 +1803,206 @@ function deleteHof(i){
 // ════════════════════════════════════════════════
 // TRADING CARDS ADMIN
 // ════════════════════════════════════════════════
-function getRarityAdmin(pos){
-  if(pos===1) return 'legendary';
-  if(pos<=3)  return 'epic';
-  if(pos<=6)  return 'rare';
-  return 'common';
-}
+
+// CARDS array lives in index.html — admin syncs a copy to FANTASY_BIN as DB.cards
+// so we can manage them without touching the source file via admin panel.
+// On page load we read DB.cards (if set), else fall back to empty.
+
+let ADMIN_CARDS = []; // local editable copy
+
 const RARITY_COLORS={legendary:'var(--yellow)',epic:'var(--purple)',rare:'var(--blue)',common:'var(--sub)'};
 const RARITY_LABELS={legendary:'⭐ LEGENDARY',epic:'💜 EPIC',rare:'🔵 RARE',common:'⬜ COMMON'};
 
 function renderCards(){
-  setDivLabel('cards-div-lbl', currentDiv==='fp1'?DB.settings.fp1Name:DB.settings.fp2Name);
-  const srt=[...DB[currentDiv].drivers].sort((a,b)=>b.pts-a.pts);
-  const tbody=document.getElementById('cards-tbody');
-  tbody.innerHTML=srt.length?srt.map((dr,i)=>{
-    const rarity=getRarityAdmin(i+1);
-    const col=RARITY_COLORS[rarity];
-    const teamColor=DB[currentDiv].teams[dr.team]?.color||'#555';
+  // Load from DB.cards if available
+  if(DB.cards) ADMIN_CARDS = JSON.parse(JSON.stringify(DB.cards));
+
+  const count = ADMIN_CARDS.length;
+  const lbl = document.getElementById('cards-count-lbl');
+  if(lbl) lbl.textContent = count + ' card' + (count!==1?'s':'');
+
+  const tbody = document.getElementById('cards-tbody');
+  if(!tbody) return;
+
+  tbody.innerHTML = ADMIN_CARDS.length ? ADMIN_CARDS.map((c,i)=>{
+    const col = RARITY_COLORS[c.rarity]||'var(--sub)';
+    const rl  = RARITY_LABELS[c.rarity]||c.rarity;
     return `<tr>
-      <td style="font-weight:700">${dr.name} <span style="font-family:monospace;font-size:10px;color:var(--sub)">${dr.code}</span></td>
-      <td><span class="badge ${currentDiv==='fp1'?'badge-red':'badge-blue'}">${currentDiv==='fp1'?DB.settings.fp1Name:DB.settings.fp2Name}</span></td>
-      <td><span style="font-family:var(--f1);font-size:9px;font-weight:700;color:${col}">${RARITY_LABELS[rarity]}</span></td>
-      <td style="color:var(--sub);font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${dr.photo?'<span style="color:var(--green)">✓ Set</span>':'<span style="color:#444">— None</span>'}</td>
-      <td style="color:var(--sub);font-size:11px;font-style:italic">${dr.cardTagline||'—'}</td>
-      <td>
-        <button class="btn btn-secondary btn-sm btn-icon" onclick="openEditCardDriver(${DB[currentDiv].drivers.indexOf(dr)})" title="Edit card data">✏</button>
-        <button class="btn btn-secondary btn-sm btn-icon" onclick="previewCard(${DB[currentDiv].drivers.indexOf(dr)})" title="Preview card">👁</button>
+      <td style="font-family:monospace;font-size:10px;color:var(--sub)">${c.id}</td>
+      <td style="font-weight:700">${c.name}</td>
+      <td style="font-family:monospace;font-weight:900;color:white">${c.code}</td>
+      <td style="font-size:12px" title="${c.teamColor}"><span style="display:inline-block;width:10px;height:10px;background:${c.teamColor};border-radius:50%;margin-right:5px;vertical-align:middle"></span>${c.team}</td>
+      <td><span class="badge ${c.div==='FP 1'?'badge-red':'badge-blue'}">${c.div}</span></td>
+      <td><span style="font-family:var(--f1);font-size:8px;font-weight:700;color:${col}">${rl}</span></td>
+      <td style="font-size:11px">${c.photo?'<span style="color:var(--green)">✓</span>':'<span style="color:#333">—</span>'}</td>
+      <td style="font-family:var(--f1);font-weight:900">${c.pts}</td>
+      <td style="color:var(--yellow);font-weight:700">${c.wins}</td>
+      <td style="color:var(--purple);font-weight:700">${c.poles}</td>
+      <td style="color:#CD7F32;font-weight:700">${c.podiums}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-secondary btn-sm btn-icon" onclick="openEditCard(${i})" title="Edit">✏</button>
+        <button class="btn btn-danger btn-sm btn-icon" onclick="deleteCard(${i})" title="Delete">✕</button>
       </td>
     </tr>`;
-  }).join(''):'<tr><td colspan="6" style="color:var(--sub);text-align:center;padding:24px">No drivers in this division yet.</td></tr>';
+  }).join('') : '<tr><td colspan="12" style="color:var(--sub);text-align:center;padding:24px">No cards yet — click + New Card to add one.</td></tr>';
+
+  // Populate give-card and give-pack player selects from FADMIN_USERS
+  populateCardPlayerSelects();
+  // Populate give-card card select
+  const cs = document.getElementById('give-card-select');
+  if(cs){
+    cs.innerHTML = ADMIN_CARDS.length
+      ? ADMIN_CARDS.map(c=>`<option value="${c.id}">${c.name} (${c.code}) — ${RARITY_LABELS[c.rarity]||c.rarity}</option>`).join('')
+      : '<option value="">No cards defined yet</option>';
+  }
+}
+
+function populateCardPlayerSelects(){
+  const players = (FADMIN_USERS||[]).map(u=>`<option value="${u.username}">${u.username}</option>`).join('');
+  const empty = '<option value="">No players yet</option>';
+  ['give-card-player','give-pack-player'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.innerHTML = players || empty;
+  });
 }
 
 function openAddCard(){
-  // Cards are auto-generated from drivers — redirect to add driver
-  toast('Cards are generated from drivers. Use the Drivers page to add a new driver.');
+  // Reset modal
+  document.getElementById('card-modal-title').textContent = 'Add Card';
+  document.getElementById('card-idx').value = '';
+  document.getElementById('card-id').value = 'card-' + Date.now();
+  document.getElementById('card-name').value = '';
+  document.getElementById('card-code').value = '';
+  document.getElementById('card-team').value = '';
+  document.getElementById('card-team-color').value = '#E8001D';
+  document.getElementById('card-div').value = 'FP 1';
+  document.getElementById('card-rarity').value = 'common';
+  document.getElementById('card-photo').value = '';
+  document.getElementById('card-pts').value = 0;
+  document.getElementById('card-wins').value = 0;
+  document.getElementById('card-poles').value = 0;
+  document.getElementById('card-podiums').value = 0;
+  openModal('modal-card');
 }
 
-function openEditCardDriver(i){
-  const dr=DB[currentDiv].drivers[i];
-  // Re-use the driver modal, pre-populated
-  document.getElementById('driver-modal-title').textContent='Edit Card — '+dr.name;
-  document.getElementById('driver-idx').value=i;
-  document.getElementById('driver-name').value=dr.name;
-  document.getElementById('driver-code').value=dr.code;
-  document.getElementById('driver-pts').value=dr.pts;
-  document.getElementById('driver-wins').value=dr.wins;
-  document.getElementById('driver-poles').value=dr.poles||0;
-  document.getElementById('driver-fantasy-value').value=dr.fantasyValue||10;
-  document.getElementById('driver-photo').value=dr.photo||'';
-  document.getElementById('driver-change').value=dr.change||'eq';
-  buildDriverTeamSelect(dr.team);
-  openModal('modal-driver');
+function openEditCard(i){
+  const c = ADMIN_CARDS[i];
+  document.getElementById('card-modal-title').textContent = 'Edit Card — ' + c.name;
+  document.getElementById('card-idx').value = i;
+  document.getElementById('card-id').value = c.id;
+  document.getElementById('card-name').value = c.name;
+  document.getElementById('card-code').value = c.code;
+  document.getElementById('card-team').value = c.team;
+  document.getElementById('card-team-color').value = c.teamColor||'#E8001D';
+  document.getElementById('card-div').value = c.div;
+  document.getElementById('card-rarity').value = c.rarity;
+  document.getElementById('card-photo').value = c.photo||'';
+  document.getElementById('card-pts').value = c.pts||0;
+  document.getElementById('card-wins').value = c.wins||0;
+  document.getElementById('card-poles').value = c.poles||0;
+  document.getElementById('card-podiums').value = c.podiums||0;
+  openModal('modal-card');
 }
 
-function previewCard(i){
-  const dr=DB[currentDiv].drivers[i];
-  const srt=[...DB[currentDiv].drivers].sort((a,b)=>b.pts-a.pts);
-  const rankInDiv=srt.findIndex(d=>d.code===dr.code)+1;
-  const rarity=getRarityAdmin(rankInDiv);
-  const teamColor=DB[currentDiv].teams[dr.team]?.color||'#555';
-  const teamName=DB[currentDiv].teams[dr.team]?.name||'—';
-  const divLabel=currentDiv==='fp1'?DB.settings.fp1Name:DB.settings.fp2Name;
-  const rarityLabel={legendary:'LEGENDARY',epic:'EPIC',rare:'RARE',common:'COMMON'}[rarity];
-  const rarityGlow={legendary:'rgba(255,215,0,.12)',epic:'rgba(139,0,255,.1)',rare:'rgba(0,87,255,.08)',common:'transparent'}[rarity];
-  const rarityBorder={legendary:'rgba(255,215,0,.35)',epic:'rgba(139,0,255,.35)',rare:'rgba(0,87,255,.3)',common:'#1a1a1a'}[rarity];
-  const rarityBarBg={legendary:'linear-gradient(90deg,#FFD700,#FF6B00,#FFD700)',epic:'linear-gradient(90deg,#8B00FF,#BF7FFF,#8B00FF)',rare:'linear-gradient(90deg,#0057FF,#4db3ff,#0057FF)',common:'#1c1c1c'}[rarity];
-  const pc=rankInDiv===1?'#FFD700':rankInDiv===2?'#C0C0C0':rankInDiv===3?'#FF6B00':'white';
-  const rarityBadgeBg={legendary:'#FFD700',epic:'#8B00FF',rare:'#0057FF',common:'#222'}[rarity];
-  const rarityBadgeColor={legendary:'#000',epic:'white',rare:'white',common:'#555'}[rarity];
-
-  document.getElementById('card-preview-body').innerHTML=`
-    <div style="width:200px;height:300px;border:1px solid ${rarityBorder};overflow:hidden;display:flex;flex-direction:column;background:#060606;box-shadow:0 0 20px ${rarityGlow};flex-shrink:0">
-      <div style="height:3px;background:${rarityBarBg};background-size:200% 100%"></div>
-      <div style="position:relative;height:168px;overflow:hidden;flex-shrink:0;background:radial-gradient(ellipse at 50% 0%,${teamColor}22,#050505)">
-        ${dr.photo?`<img src="${dr.photo}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top" crossorigin="anonymous" onerror="this.style.display='none'">`:''}
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--f1);font-size:44px;font-weight:900;color:rgba(255,255,255,.06)${dr.photo?';display:none':''}">${dr.code}</div>
-        <div style="position:absolute;inset:0;background:linear-gradient(to top,#060606 0%,rgba(6,6,6,.5) 45%,transparent 100%)"></div>
-        <div style="position:absolute;top:8px;left:8px;font-family:var(--f1);font-size:6px;font-weight:700;letter-spacing:2px;padding:2px 6px;background:${rarityBadgeBg};color:${rarityBadgeColor};clip-path:polygon(3px 0,100% 0,calc(100% - 3px) 100%,0 100%)">${rarityLabel}</div>
-        <div style="position:absolute;top:8px;right:8px;font-family:var(--f1);font-size:10px;font-weight:900;color:${pc}">P${rankInDiv}</div>
-        <div style="position:absolute;bottom:0;left:0;right:0;height:2px;background:${teamColor}"></div>
-      </div>
-      <div style="padding:9px 11px;flex:1;display:flex;flex-direction:column;gap:7px">
-        <div>
-          <div style="font-family:var(--body);font-size:14px;font-weight:700;color:white">${dr.name}</div>
-          <div style="font-family:var(--f1);font-size:6px;color:var(--sub);letter-spacing:3px;margin-top:2px">${teamName} · ${divLabel}</div>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-top:auto">
-          <div style="background:#0A0A0A;border:1px solid #111;padding:4px 3px;text-align:center">
-            <div style="font-family:var(--f1);font-size:12px;font-weight:900;color:#FFD700">${dr.wins||0}</div>
-            <div style="font-size:6px;color:var(--sub);letter-spacing:1px;margin-top:1px">WINS</div>
-          </div>
-          <div style="background:#0A0A0A;border:1px solid #111;padding:4px 3px;text-align:center">
-            <div style="font-family:var(--f1);font-size:12px;font-weight:900;color:#8B00FF">${dr.poles||0}</div>
-            <div style="font-size:6px;color:var(--sub);letter-spacing:1px;margin-top:1px">POLES</div>
-          </div>
-          <div style="background:#0A0A0A;border:1px solid #111;padding:4px 3px;text-align:center">
-            <div style="font-family:var(--f1);font-size:12px;font-weight:900;color:${pc}">${dr.pts}</div>
-            <div style="font-size:6px;color:var(--sub);letter-spacing:1px;margin-top:1px">PTS</div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div style="margin-top:12px;font-family:var(--f1);font-size:8px;letter-spacing:2px;color:var(--sub);text-align:center">CLICK ✏ TO EDIT PHOTO / STATS</div>
-  `;
+function saveCard(){
+  const idx = document.getElementById('card-idx').value;
+  const card = {
+    id:       document.getElementById('card-id').value.trim() || 'card-'+Date.now(),
+    name:     document.getElementById('card-name').value.trim(),
+    code:     document.getElementById('card-code').value.trim().toUpperCase().slice(0,3),
+    team:     document.getElementById('card-team').value.trim(),
+    teamColor:document.getElementById('card-team-color').value,
+    div:      document.getElementById('card-div').value,
+    rarity:   document.getElementById('card-rarity').value,
+    photo:    document.getElementById('card-photo').value.trim(),
+    pts:      parseInt(document.getElementById('card-pts').value)||0,
+    wins:     parseInt(document.getElementById('card-wins').value)||0,
+    poles:    parseInt(document.getElementById('card-poles').value)||0,
+    podiums:  parseInt(document.getElementById('card-podiums').value)||0,
+  };
+  if(!card.name){ toast('Name is required.','error'); return; }
+  if(idx===''){ ADMIN_CARDS.push(card); }
+  else { ADMIN_CARDS[parseInt(idx)] = card; }
+  saveCards();
+  closeModal('modal-card');
 }
 
+function deleteCard(i){
+  if(!confirm('Delete "'+ADMIN_CARDS[i].name+'"?')) return;
+  ADMIN_CARDS.splice(i,1);
+  saveCards();
+}
+
+async function saveCards(){
+  DB.cards = ADMIN_CARDS;
+  await saveAll();
+  renderCards();
+  toast('Cards saved!');
+}
+
+// Give a specific card directly to a player
+async function giveCardToPlayer(){
+  const username = document.getElementById('give-card-player').value;
+  const cardId   = document.getElementById('give-card-select').value;
+  if(!username||!cardId){ toast('Select a player and a card.','error'); return; }
+  const card = ADMIN_CARDS.find(c=>c.id===cardId);
+  if(!card){ toast('Card not found.','error'); return; }
+  const user = FADMIN_USERS.find(u=>u.username===username);
+  if(!user){ toast('Player not found.','error'); return; }
+  if(!user.cardCollection) user.cardCollection=[];
+  user.cardCollection.push({id:card.id, rarity:card.rarity, pulledAt:Date.now(), giftedBy:'admin'});
+  await saveFantasyUsersAdmin();
+  toast(`Gave "${card.name}" to ${username}!`);
+}
+
+// Give a full pack to a player (no credits deducted)
+async function givePackToPlayer(){
+  const username = document.getElementById('give-pack-player').value;
+  const packType = document.getElementById('give-pack-type').value;
+  if(!username){ toast('Select a player.','error'); return; }
+  if(!ADMIN_CARDS.length){ toast('No cards defined yet.','error'); return; }
+  const user = FADMIN_USERS.find(u=>u.username===username);
+  if(!user){ toast('Player not found.','error'); return; }
+
+  // Pick 5 cards using same logic as public site
+  const pool = packType==='elite'
+    ? ADMIN_CARDS.filter(c=>c.rarity==='legendary'||c.rarity==='epic')
+    : packType==='premium'
+    ? ADMIN_CARDS.filter(c=>c.rarity==='legendary'||c.rarity==='epic'||c.rarity==='rare')
+    : ADMIN_CARDS;
+  const src = pool.length ? pool : ADMIN_CARDS;
+  const drawn=[], used=new Set();
+  // Guarantee
+  if(packType==='elite'){
+    const legs=src.filter(c=>c.rarity==='legendary');
+    if(legs.length){ const g=legs[Math.floor(Math.random()*legs.length)]; drawn.push(g); used.add(g.id); }
+  } else if(packType==='premium'){
+    const epics=src.filter(c=>c.rarity==='legendary'||c.rarity==='epic');
+    if(epics.length){ const g=epics[Math.floor(Math.random()*epics.length)]; drawn.push(g); used.add(g.id); }
+  }
+  let attempts=0;
+  while(drawn.length<5&&attempts<300){
+    attempts++;
+    const pick=src[Math.floor(Math.random()*src.length)];
+    if(!used.has(pick.id)||src.length<=5){ drawn.push(pick); used.add(pick.id); }
+  }
+
+  if(!user.cardCollection) user.cardCollection=[];
+  drawn.forEach(c=>user.cardCollection.push({id:c.id, rarity:c.rarity, pulledAt:Date.now(), giftedBy:'admin'}));
+  await saveFantasyUsersAdmin();
+  const legs=drawn.filter(c=>c.rarity==='legendary').length;
+  toast(`Gave ${drawn.length} cards to ${username}${legs?' — including '+legs+' LEGENDARY!':''}`);
+}
+
+async function saveFantasyUsersAdmin(){
+  try{
+    await fetch(`https://api.jsonbin.io/v3/b/${FANTASY_BIN_ID}`,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_KEY},
+      body:JSON.stringify({users:FADMIN_USERS})
+    });
+  } catch(e){ toast('Failed to save player data.','error'); }
+}
 // ════════════════════════════════════════════════
 // FANTASY ADMIN
 // ════════════════════════════════════════════════
@@ -1935,16 +2030,23 @@ async function adminLoadFantasy(){
   tbody.innerHTML=sorted.length?sorted.map((u,i)=>{
     const fp1dr=DB.fp1.drivers.find(d=>d.code===u.fp1Pick);
     const fp2dr=DB.fp2.drivers.find(d=>d.code===u.fp2Pick);
+    const credits=u.credits||0;
+    const cards=(u.cardCollection||[]).length;
     return `<tr>
       <td style="font-weight:900;color:var(--sub)">${i+1}</td>
       <td style="font-weight:700">${u.username}</td>
       <td>${fp1dr?fp1dr.name:'<span style="color:var(--sub)">Not picked</span>'}</td>
       <td>${fp2dr?fp2dr.name:'<span style="color:var(--sub)">Not picked</span>'}</td>
       <td style="font-family:var(--f1);color:var(--purple);font-weight:900">${u.total}</td>
+      <td style="font-family:var(--f1);font-weight:900;color:#FFD700">${credits.toLocaleString()}</td>
+      <td style="color:var(--sub)">${cards}</td>
       <td style="color:var(--sub);font-size:11px">${u.createdAt?new Date(u.createdAt).toLocaleDateString('en-GB'):'-'}</td>
-      <td><button class="btn btn-sm" style="background:rgba(232,0,29,.12);color:var(--red);border:1px solid rgba(232,0,29,.2)" onclick="adminDeleteFantasyUser(${FADMIN_USERS.indexOf(u)})">Remove</button></td>
+      <td>
+        <button class="btn btn-success btn-sm" onclick="openGiveCredits('${u.username}')">+ Credits</button>
+        <button class="btn btn-sm" style="background:rgba(232,0,29,.12);color:var(--red);border:1px solid rgba(232,0,29,.2)" onclick="adminDeleteFantasyUser(${FADMIN_USERS.indexOf(u)})">Remove</button>
+      </td>
     </tr>`;
-  }).join(''):'<tr><td colspan="7" style="color:var(--sub);text-align:center;padding:20px">No users yet.</td></tr>';
+  }).join(''):'<tr><td colspan="8" style="color:var(--sub);text-align:center;padding:20px">No users yet.</td></tr>';
 }
 async function adminDeleteFantasyUser(i){
   if(!confirm('Remove this user?')) return;
@@ -2162,5 +2264,117 @@ function toast(msg,isError=false){
 // ════════════════════════════════════════════════
 showGate();
 </script>
+
+<!-- ADD/EDIT CARD MODAL -->
+<div class="modal-overlay" id="modal-card">
+  <div class="modal" style="width:620px">
+    <div class="modal-header">
+      <div class="modal-title" id="card-modal-title">Add Card</div>
+      <button class="modal-close" onclick="closeModal('modal-card')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="card-idx">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Card ID <span style="font-size:9px;color:var(--sub)">(unique, no spaces)</span></label>
+          <input class="form-input" id="card-id" placeholder="fp1-001">
+        </div>
+        <div class="form-group">
+          <label class="form-label">3-Letter Code</label>
+          <input class="form-input" id="card-code" placeholder="DRV" maxlength="3" style="text-transform:uppercase">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Driver / Player Name</label>
+        <input class="form-input" id="card-name" placeholder="Full name">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Team Name</label>
+          <input class="form-input" id="card-team" placeholder="Team Name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Team Colour</label>
+          <input class="form-input" id="card-team-color" type="color" value="#E8001D" style="height:38px;padding:3px 6px;cursor:pointer">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Division</label>
+          <select class="form-select" id="card-div">
+            <option value="FP 1">FP 1</option>
+            <option value="FP 2">FP 2</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Rarity</label>
+          <select class="form-select" id="card-rarity">
+            <option value="legendary">⭐ Legendary</option>
+            <option value="epic">💜 Epic</option>
+            <option value="rare">🔵 Rare</option>
+            <option value="common" selected>⬜ Common</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Photo URL <span style="font-size:9px;color:var(--sub)">(optional — leave blank for placeholder)</span></label>
+        <input class="form-input" id="card-photo" placeholder="https://...">
+      </div>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label class="form-label">Championship PTS</label>
+          <input class="form-input" id="card-pts" type="number" value="0" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Race Wins</label>
+          <input class="form-input" id="card-wins" type="number" value="0" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Pole Positions</label>
+          <input class="form-input" id="card-poles" type="number" value="0" min="0">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Podiums</label>
+        <input class="form-input" id="card-podiums" type="number" value="0" min="0">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-card')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCard()">Save Card</button>
+    </div>
+  </div>
+</div>
+
+<!-- GIVE CREDITS MODAL -->
+<div class="modal-overlay" id="modal-credits">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Give Credits</div>
+      <button class="modal-close" onclick="closeModal('modal-credits')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="credits-username">
+      <div style="margin-bottom:14px;font-size:13px;color:var(--sub)">Giving credits to: <strong id="credits-username-display" style="color:white"></strong></div>
+      <div style="margin-bottom:14px;font-size:13px;color:var(--sub)">Current balance: <strong id="credits-current" style="color:#FFD700"></strong></div>
+      <div class="form-group">
+        <label class="form-label">Amount to Give</label>
+        <input class="form-input" id="credits-amount" type="number" min="1" value="100" placeholder="e.g. 500">
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('credits-amount').value=60">60 (Standard)</button>
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('credits-amount').value=250">250 (Premium)</button>
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('credits-amount').value=500">500</button>
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('credits-amount').value=900">900 (Elite)</button>
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('credits-amount').value=1000">1000</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-credits')">Cancel</button>
+      <button class="btn btn-success" onclick="confirmGiveCredits()">Give Credits</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
