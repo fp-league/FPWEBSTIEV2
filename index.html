@@ -413,13 +413,13 @@ section.active{display:block;}
 #pack-flash{position:fixed;inset:0;z-index:600;pointer-events:none;opacity:0;}
 #pack-results-screen{display:none;flex-direction:column;align-items:center;gap:24px;position:relative;z-index:2;width:100%;padding:0 20px;}
 .pack-results-title{font-family:var(--f1);font-size:clamp(14px,2.5vw,20px);font-weight:900;letter-spacing:5px;color:white;text-align:center;}
-.pack-results-grid{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
-.pack-result-card{opacity:0;transform:translateY(30px) scale(.9);transition:opacity .4s ease,transform .4s cubic-bezier(.2,.8,.2,1);}
+.pack-results-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:520px;}
+.pack-result-card{opacity:0;transform:translateY(24px) scale(.92);transition:opacity .4s ease,transform .4s cubic-bezier(.2,.8,.2,1);}
 .pack-result-card.shown{opacity:1;transform:translateY(0) scale(1);}
-.pack-result-wrap{width:150px;height:220px;perspective:600px;}
-.pack-result-inner{width:100%;height:100%;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,.2,.2,1);}
-.pack-result-wrap:hover .pack-result-inner{transform:rotateY(180deg);}
-.pack-result-face{position:absolute;inset:0;backface-visibility:hidden;}
+.pack-result-wrap{width:100%;aspect-ratio:2/3;perspective:700px;cursor:pointer;}
+.pack-result-inner{width:100%;height:100%;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,.2,.2,1);}
+.pack-result-wrap.flipped .pack-result-inner{transform:rotateY(180deg);}
+.pack-result-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;}
 .pack-result-back-face{transform:rotateY(180deg);}
 .pack-results-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
 .pack-again-btn{padding:10px 28px;background:var(--red);border:none;color:white;font-family:var(--f1);font-size:9px;font-weight:700;letter-spacing:3px;cursor:pointer;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);transition:opacity .2s;}
@@ -430,7 +430,7 @@ section.active{display:block;}
 .flash-epic{background:rgba(139,0,255,.5);}
 .flash-rare{background:rgba(0,87,255,.4);}
 .flash-common{background:rgba(255,255,255,.15);}
-@media(max-width:600px){.pack-types{flex-direction:column;align-items:center;}.pack-results-grid{gap:8px;}.pack-result-wrap{width:120px;height:180px;}}
+@media(max-width:600px){.pack-types{flex-direction:column;align-items:center;}.pack-results-grid{grid-template-columns:repeat(3,1fr);gap:6px;max-width:100%;}}
 
 /* ═══ FANTASY ═══ */
 .fantasy-layout{display:grid;grid-template-columns:1fr 380px;gap:24px;align-items:start;}
@@ -1083,6 +1083,7 @@ function sanitizeDB(data){
     data[div].drivers.sort((a,b)=>b.pts-a.pts).forEach((d,i)=>d.pos=i+1);
   });
   if(!data.settings.fantasyBudget) data.settings.fantasyBudget=25;
+  if(!data.cards) data.cards=[];
   return data;
 }
 
@@ -1096,13 +1097,14 @@ document.addEventListener('DOMContentLoaded', async ()=>{
       if(res.ok){
         const data=await res.json();
         DB=sanitizeDB(data);
+        mergeDbCards();
       }
     }catch(e){ console.warn('JSONBin load failed, using defaults',e); }
   } else {
     // Fallback: localStorage
     try{
       const saved=localStorage.getItem('fpLeagueData');
-      if(saved) DB=sanitizeDB(JSON.parse(saved));
+      if(saved) { DB=sanitizeDB(JSON.parse(saved)); mergeDbCards(); }
     }catch(e){}
   }
   updateLabels();
@@ -2331,7 +2333,7 @@ function packShowResults(){
   const grid=document.getElementById('pack-results-grid');
   grid.innerHTML=_packCards.map((c,i)=>`
     <div class="pack-result-card" id="pr-${i}">
-      <div class="pack-result-wrap">
+      <div class="pack-result-wrap" onclick="this.classList.toggle('flipped')" title="Tap to flip">
         <div class="pack-result-inner">
           <div class="pack-result-face">${buildCardFront(c,'height:100%')}</div>
           <div class="pack-result-face pack-result-back-face">${buildCardBack(c)}</div>
@@ -2351,6 +2353,11 @@ function packShowResults(){
   const epics=_packCards.filter(c=>c.rarity==='epic').length;
   const highlight=legs?`<span style="color:var(--yellow)">${legs} LEGENDARY!</span>`:epics?`<span style="color:var(--purple)">${epics} EPIC!</span>`:`<span style="color:var(--red)">${_packCards.length} Cards</span>`;
   document.getElementById('pack-results-title').innerHTML=`Pack Results · ${highlight}`;
+  // Add tap hint below grid
+  const hint = document.createElement('div');
+  hint.style.cssText='font-family:var(--f1);font-size:8px;letter-spacing:3px;color:var(--sub);text-align:center;margin-top:-8px';
+  hint.textContent='TAP A CARD TO FLIP';
+  grid.after(hint);
 }
 
 function packAgain(){
