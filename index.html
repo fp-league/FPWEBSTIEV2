@@ -1726,7 +1726,7 @@ async function saveFantasyUsers(){
   if(!FANTASY_ENABLED) return;
   await fetch(`https://api.jsonbin.io/v3/b/${FANTASY_BIN_ID}`,{
     method:'PUT',
-    headers:{'Content-Type':'application/json'},
+    headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_KEY},
     body:JSON.stringify({users:FANTASY_USERS})
   });
 }
