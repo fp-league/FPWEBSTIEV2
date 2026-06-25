@@ -1810,8 +1810,8 @@ function deleteHof(i){
 
 let ADMIN_CARDS = []; // local editable copy
 
-const RARITY_COLORS={legendary:'var(--yellow)',epic:'var(--purple)',rare:'var(--blue)',common:'var(--sub)'};
-const RARITY_LABELS={legendary:'⭐ LEGENDARY',epic:'💜 EPIC',rare:'🔵 RARE',common:'⬜ COMMON'};
+const RARITY_COLORS={secret:'var(--black)',legendary:'var(--yellow)',epic:'var(--purple)',rare:'var(--blue)',common:'var(--sub)'};
+const RARITY_LABELS={secret:'👤 SECRET',legendary:'⭐ LEGENDARY',epic:'💜 EPIC',rare:'🔵 RARE',common:'⬜ COMMON'};
 
 function renderCards(){
   // Load from DB.cards if available
@@ -1876,7 +1876,7 @@ function openAddCard(){
   document.getElementById('card-team').value = '';
   document.getElementById('card-team-color').value = '#E8001D';
   document.getElementById('card-div').value = 'FP 1';
-  document.getElementById('card-rarity').value = 'common';
+   'common';
   document.getElementById('card-photo').value = '';
   document.getElementById('card-pts').value = 0;
   document.getElementById('card-wins').value = 0;
