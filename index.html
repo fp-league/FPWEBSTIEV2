@@ -1702,6 +1702,261 @@ function renderPenalties(){
 //  TRADING CARDS — CUSTOM CARD DEFINITIONS
 //  Edit CARDS array to add/remove cards. Pack pool = this array.
 // ══════════════════════════════════════════════════════════════════
+// ── FANTASY LEAGUE ───────────────────────────────────
+let FANTASY_USERS = [];
+let FANTASY_ME = null; // logged-in user object
+
+async function hashPw(pw){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pw));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+async function loadFantasyUsers(){
+  if(!FANTASY_ENABLED) return;
+  try{
+    const res=await fetch(`https://api.jsonbin.io/v3/b/${FANTASY_BIN_ID}/latest`,{headers:{'X-Bin-Meta':false}});
+    if(res.ok){
+      const data=await res.json();
+      FANTASY_USERS=Array.isArray(data.users)?data.users:(data.users?Object.values(data.users):[]);
+    }
+  }catch(e){}
+}
+
+async function saveFantasyUsers(){
+  if(!FANTASY_ENABLED) return;
+  await fetch(`https://api.jsonbin.io/v3/b/${FANTASY_BIN_ID}`,{
+    method:'PUT',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({users:FANTASY_USERS})
+  });
+}
+
+function fantasyPts(user){
+  const fp1dr=DB.fp1.drivers.find(d=>d.code===user.fp1Pick);
+  const fp2dr=DB.fp2.drivers.find(d=>d.code===user.fp2Pick);
+  return (fp1dr?.pts||0)+(fp2dr?.pts||0);
+}
+
+async function renderFantasy(){
+  await loadFantasyUsers();
+  const saved=sessionStorage.getItem('fpFantasyUser');
+  if(saved&&!FANTASY_ME){ try{ FANTASY_ME=JSON.parse(saved); }catch(e){} }
+
+  const sorted=[...FANTASY_USERS].filter(u=>u.fp1Pick&&u.fp2Pick)
+    .map(u=>({...u,total:fantasyPts(u)})).sort((a,b)=>b.total-a.total);
+  const lbList=document.getElementById('fantasy-lb-list');
+  document.getElementById('flb-count').textContent=`${sorted.length} PLAYER${sorted.length!==1?'S':''}`;
+  const posColor=i=>i===0?'var(--yellow)':i===1?'#C0C0C0':i===2?'var(--orange)':'var(--sub)';
+  lbList.innerHTML=sorted.length?sorted.map((u,i)=>{
+    const isMe=FANTASY_ME&&u.username===FANTASY_ME.username;
+    const fp1dr=DB.fp1.drivers.find(d=>d.code===u.fp1Pick);
+    const fp2dr=DB.fp2.drivers.find(d=>d.code===u.fp2Pick);
+    return `<div class="flb-row ${isMe?'me':''}">
+      <div class="flb-pos" style="color:${posColor(i)}">${i+1}</div>
+      <div class="flb-info">
+        <div class="flb-name">${u.username}${isMe?' <span style="font-family:var(--f1);font-size:8px;color:var(--purple);letter-spacing:2px">YOU</span>':''}</div>
+        <div class="flb-picks">${fp1dr?fp1dr.name:'?'} (FP1) · ${fp2dr?fp2dr.name:'?'} (FP2)</div>
+      </div>
+      <div class="flb-pts">${u.total}</div>
+    </div>`;
+  }).join(''):'<div style="padding:24px;text-align:center;font-size:13px;color:var(--sub)">No entries yet. Be the first!</div>';
+
+  const panel=document.getElementById('fantasy-right-panel');
+  if(!FANTASY_ENABLED){
+    panel.innerHTML=`<div class="auth-card"><div style="font-size:13px;color:var(--sub)">Fantasy setup needed — add FANTASY_BIN_ID to the site.</div></div>`;
+    return;
+  }
+  if(FANTASY_ME){
+    const me=FANTASY_USERS.find(u=>u.username===FANTASY_ME.username)||FANTASY_ME;
+    const fp1dr=DB.fp1.drivers.find(d=>d.code===me.fp1Pick);
+    const fp2dr=DB.fp2.drivers.find(d=>d.code===me.fp2Pick);
+    const hasPicks=me.fp1Pick&&me.fp2Pick;
+    if(hasPicks){
+      const tc1=fp1dr?DB.fp1.teams[fp1dr.team]?.color||'#555':'#555';
+      const tc2=fp2dr?DB.fp2.teams[fp2dr.team]?.color||'#555':'#555';
+      panel.innerHTML=`<div class="my-team-card">
+        <div class="mt-header"><div class="mt-title">MY FANTASY TEAM</div><div class="mt-user">${me.username}</div></div>
+        <div class="mt-pick" style="border-left:3px solid ${tc1}">
+          <div><div class="mt-pick-div">FP1 PICK</div><div class="mt-pick-name">${fp1dr?fp1dr.name:'—'}</div></div>
+          <div style="text-align:right"><div class="mt-pick-pts">${fp1dr?.pts||0} pts</div><div style="font-family:var(--f1);font-size:10px;color:var(--purple);margin-top:2px">£${fp1dr?.fantasyValue||10}m</div></div>
+        </div>
+        <div class="mt-pick" style="border-left:3px solid ${tc2}">
+          <div><div class="mt-pick-div">FP2 PICK</div><div class="mt-pick-name">${fp2dr?fp2dr.name:'—'}</div></div>
+          <div style="text-align:right"><div class="mt-pick-pts">${fp2dr?.pts||0} pts</div><div style="font-family:var(--f1);font-size:10px;color:var(--purple);margin-top:2px">£${fp2dr?.fantasyValue||10}m</div></div>
+        </div>
+        <div class="mt-total">
+          <div><div class="mt-total-lbl">TOTAL FANTASY PTS</div><div style="font-family:var(--f1);font-size:10px;color:var(--sub);margin-top:3px;letter-spacing:1px">TEAM VALUE: <span style="color:var(--purple)">£${(fp1dr?.fantasyValue||0)+(fp2dr?.fantasyValue||0)}m</span> / £${DB.settings.fantasyBudget||25}m</div></div>
+          <div class="mt-total-pts">${fantasyPts(me)}</div>
+        </div>
+        <span class="mt-logout" onclick="fantasyLogout()">Log out</span>
+      </div>`;
+    } else { panel.innerHTML=fantasyPickHTML(me); }
+  } else {
+    panel.innerHTML=`<div class="auth-card">
+      <div class="auth-tabs">
+        <div class="auth-tab active" onclick="fantasyAuthTab('login',this)">LOGIN</div>
+        <div class="auth-tab" onclick="fantasyAuthTab('signup',this)">SIGN UP</div>
+      </div>
+      <div id="fantasy-auth-form"></div>
+    </div>`;
+    fantasyAuthTab('login',document.querySelector('.auth-tab.active'));
+  }
+}
+
+function fantasyBudgetInfo(me){
+  const budget=DB.settings.fantasyBudget||25;
+  const fp1dr=DB.fp1.drivers.find(d=>d.code===me.fp1Pick);
+  const fp2dr=DB.fp2.drivers.find(d=>d.code===me.fp2Pick);
+  const spent=(fp1dr?.fantasyValue||0)+(fp2dr?.fantasyValue||0);
+  const remaining=budget-spent;
+  const pct=Math.min(100,Math.round((spent/budget)*100));
+  const overBudget=spent>budget;
+  return {budget,spent,remaining,pct,overBudget};
+}
+
+function fantasyPickHTML(me){
+  const fp1sorted=[...DB.fp1.drivers].sort((a,b)=>b.pts-a.pts);
+  const fp2sorted=[...DB.fp2.drivers].sort((a,b)=>b.pts-a.pts);
+  const {budget,spent,remaining,pct,overBudget}=fantasyBudgetInfo(me);
+  const budgetColor=overBudget?'var(--red)':remaining<=3?'var(--orange)':'var(--purple)';
+  const fp1rows=fp1sorted.map(dr=>{
+    const col=DB.fp1.teams[dr.team]?.color||'#555';
+    const val=dr.fantasyValue||10;
+    return `<div class="pick-driver-row ${me.fp1Pick===dr.code?'selected':''}" onclick="fantasySelectPick('fp1','${dr.code}',this)">
+      <div class="pick-dot" style="background:${col};clip-path:polygon(0 0,80% 0,100% 100%,20% 100%)"></div>
+      <div class="pick-name">${dr.name}</div><div class="pick-code">${dr.code}</div>
+      <div class="pick-pts">${dr.pts} pts</div>
+      <div style="font-family:var(--f1);font-size:11px;font-weight:900;color:var(--purple);min-width:38px;text-align:right">£${val}m</div>
+      <div class="pick-check">✓</div>
+    </div>`;
+  }).join('');
+  const fp2rows=fp2sorted.map(dr=>{
+    const col=DB.fp2.teams[dr.team]?.color||'#555';
+    const val=dr.fantasyValue||10;
+    return `<div class="pick-driver-row ${me.fp2Pick===dr.code?'selected':''}" onclick="fantasySelectPick('fp2','${dr.code}',this)">
+      <div class="pick-dot" style="background:${col};clip-path:polygon(0 0,80% 0,100% 100%,20% 100%)"></div>
+      <div class="pick-name">${dr.name}</div><div class="pick-code">${dr.code}</div>
+      <div class="pick-pts">${dr.pts} pts</div>
+      <div style="font-family:var(--f1);font-size:11px;font-weight:900;color:var(--purple);min-width:38px;text-align:right">£${val}m</div>
+      <div class="pick-check">✓</div>
+    </div>`;
+  }).join('');
+  const canConfirm=me.fp1Pick&&me.fp2Pick&&!overBudget;
+  return `<div class="pick-card">
+    <div class="pick-title">PICK YOUR TEAM</div>
+    <div class="pick-sub">Select 1 driver from each division. Stay within your £${budget}m budget.</div>
+    <div style="background:#0A0A0A;border:1px solid #1a1a1a;padding:12px 14px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span style="font-family:var(--f1);font-size:9px;letter-spacing:2px;color:var(--sub)">BUDGET</span>
+        <span style="font-family:var(--f1);font-size:13px;font-weight:900;color:${budgetColor}">£${spent}m <span style="color:var(--sub);font-size:9px">/ £${budget}m</span></span>
+      </div>
+      <div style="height:4px;background:#1a1a1a;border-radius:2px;overflow:hidden;">
+        <div style="height:100%;width:${pct}%;background:${budgetColor};transition:width .3s;box-shadow:0 0 6px ${budgetColor}66"></div>
+      </div>
+      ${overBudget?`<div style="font-size:11px;color:var(--red);margin-top:6px;font-family:var(--f1);letter-spacing:1px">OVER BUDGET — swap a driver</div>`:''}
+    </div>
+    <div class="pick-div-title">FP 1 DRIVER</div>${fp1rows}
+    <div class="pick-div-title">FP 2 DRIVER</div>${fp2rows}
+    <button class="confirm-btn" id="confirm-picks-btn" onclick="fantasyConfirmPicks()" ${canConfirm?'':'disabled'}>CONFIRM TEAM</button>
+    <div class="auth-msg" id="pick-msg"></div>
+  </div>`;
+}
+
+function fantasySelectPick(div,code,el){
+  if(!FANTASY_ME) return;
+  FANTASY_ME[div+'Pick']=code;
+  const user=FANTASY_USERS.find(u=>u.username===FANTASY_ME.username);
+  if(user) user[div+'Pick']=code;
+  sessionStorage.setItem('fpFantasyUser',JSON.stringify(FANTASY_ME));
+  document.getElementById('fantasy-right-panel').innerHTML=fantasyPickHTML(FANTASY_ME);
+}
+
+async function fantasyConfirmPicks(){
+  const btn=document.getElementById('confirm-picks-btn');
+  if(btn) btn.disabled=true;
+  const msg=document.getElementById('pick-msg');
+  if(msg){msg.style.color='var(--sub)';msg.textContent='Saving…';}
+  const idx=FANTASY_USERS.findIndex(u=>u.username===FANTASY_ME.username);
+  if(idx>=0){ FANTASY_USERS[idx].fp1Pick=FANTASY_ME.fp1Pick; FANTASY_USERS[idx].fp2Pick=FANTASY_ME.fp2Pick; }
+  try{
+    await saveFantasyUsers();
+    sessionStorage.setItem('fpFantasyUser',JSON.stringify(FANTASY_ME));
+    renderFantasy();
+  }catch(e){
+    if(msg){msg.style.color='var(--red)';msg.textContent='Save failed. Try again.';}
+    if(btn) btn.disabled=false;
+  }
+}
+
+function fantasyAuthTab(tab,el){
+  document.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  const form=document.getElementById('fantasy-auth-form');
+  if(tab==='login'){
+    form.innerHTML=`
+      <input class="auth-input" id="fa-user" placeholder="Username" autocomplete="username">
+      <input class="auth-input" id="fa-pw" type="password" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')fantasyLogin()">
+      <button class="auth-btn" onclick="fantasyLogin()">LOGIN</button>
+      <div class="auth-msg" id="auth-msg"></div>`;
+  } else {
+    form.innerHTML=`
+      <input class="auth-input" id="fa-user" placeholder="Choose a username" autocomplete="username">
+      <input class="auth-input" id="fa-pw" type="password" placeholder="Choose a password" autocomplete="new-password">
+      <input class="auth-input" id="fa-pw2" type="password" placeholder="Confirm password" autocomplete="new-password" onkeydown="if(event.key==='Enter')fantasySignup()">
+      <button class="auth-btn" onclick="fantasySignup()">CREATE ACCOUNT</button>
+      <div class="auth-msg" id="auth-msg"></div>`;
+  }
+}
+
+async function fantasyLogin(){
+  const username=document.getElementById('fa-user')?.value.trim();
+  const pw=document.getElementById('fa-pw')?.value;
+  const msg=document.getElementById('auth-msg');
+  if(!username||!pw){msg.style.color='var(--red)';msg.textContent='Fill in both fields.';return;}
+  msg.style.color='var(--sub)';msg.textContent='Logging in…';
+  await loadFantasyUsers();
+  const hash=await hashPw(pw);
+  const user=FANTASY_USERS.find(u=>u.username.toLowerCase()===username.toLowerCase()&&u.passwordHash===hash);
+  if(!user){msg.style.color='var(--red)';msg.textContent='Wrong username or password.';return;}
+  FANTASY_ME={...user};
+  sessionStorage.setItem('fpFantasyUser',JSON.stringify(FANTASY_ME));
+  renderFantasy();
+}
+
+async function fantasySignup(){
+  const username=document.getElementById('fa-user')?.value.trim();
+  const pw=document.getElementById('fa-pw')?.value;
+  const pw2=document.getElementById('fa-pw2')?.value;
+  const msg=document.getElementById('auth-msg');
+  if(!username||!pw){msg.style.color='var(--red)';msg.textContent='Fill in all fields.';return;}
+  if(pw!==pw2){msg.style.color='var(--red)';msg.textContent='Passwords do not match.';return;}
+  if(username.length<3){msg.style.color='var(--red)';msg.textContent='Username must be at least 3 characters.';return;}
+  await loadFantasyUsers();
+  if(FANTASY_USERS.find(u=>u.username.toLowerCase()===username.toLowerCase())){
+    msg.style.color='var(--red)';msg.textContent='Username already taken.';return;
+  }
+  msg.style.color='var(--sub)';msg.textContent='Creating account…';
+  const hash=await hashPw(pw);
+  const newUser={username,passwordHash:hash,fp1Pick:null,fp2Pick:null,credits:0,cardCollection:[],createdAt:new Date().toISOString()};
+  FANTASY_USERS.push(newUser);
+  try{
+    await saveFantasyUsers();
+    FANTASY_ME={...newUser};
+    sessionStorage.setItem('fpFantasyUser',JSON.stringify(FANTASY_ME));
+    renderFantasy();
+  }catch(e){
+    FANTASY_USERS.pop();
+    msg.style.color='var(--red)';msg.textContent='Sign up failed. Try again.';
+  }
+}
+
+function fantasyLogout(){
+  FANTASY_ME=null;
+  sessionStorage.removeItem('fpFantasyUser');
+  renderFantasy();
+}
+
+
 const CARDS = [
   // ─── EXAMPLE CARDS (replace with real ones) ───
   {
