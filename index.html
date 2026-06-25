@@ -2031,16 +2031,18 @@ function mergeDbCards(){
 
 // ── HELPERS ────────────────────────────────────────────────────────
 function rarityLabel(r){
-  return {legendary:'LEGENDARY',epic:'EPIC',rare:'RARE',common:'COMMON'}[r]||'COMMON';
+  return {secret:'SECRET',legendary:'LEGENDARY',epic:'EPIC',rare:'RARE',common:'COMMON'}[r]||'COMMON';
 }
 function rarityColor(r){
-  return {legendary:'var(--yellow)',epic:'var(--purple)',rare:'var(--blue)',common:'#555'}[r];
+  return {secret:'var(--black)',legendary:'var(--yellow)',epic:'var(--purple)',rare:'var(--blue)',common:'#555'}[r];
 }
 function rarityBorder(r){
-  return {legendary:'rgba(255,215,0,.35)',epic:'rgba(139,0,255,.35)',rare:'rgba(0,87,255,.3)',common:'#1a1a1a'}[r];
+  return {secret:'rgba(255,255,255,.15)',legendary:'rgba(255,215,0,.35)',epic:'rgba(139,0,255,.35)',rare:'rgba(0,87,255,.3)',common:'#1a1a1a'}[r];
 }
 function rarityBarBg(r){
   return {
+
+secret:'linear-gradient(90deg,#00FFD0,#00BFA5,#00FFD0) 0 0 / 200% 100%',
     legendary:'linear-gradient(90deg,#FFD700,#FF6B00,#FFD700) 0 0 / 200% 100%',
     epic:'linear-gradient(90deg,#8B00FF,#BF7FFF,#8B00FF) 0 0 / 200% 100%',
     rare:'linear-gradient(90deg,#0057FF,#4db3ff,#0057FF) 0 0 / 200% 100%',
