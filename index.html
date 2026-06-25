@@ -1004,24 +1004,44 @@ document.addEventListener('DOMContentLoaded',ltInit);
   <div class="section-header">
     <div class="section-title">Driver <span>Cards</span></div>
   </div>
-  <div class="tc-header-bar">
-    <div class="tc-header-icon">🃏</div>
-    <div class="tc-header-text" style="flex:1">
-      <div class="tc-header-title">FP League <span>Driver Cards</span></div>
-      <div class="tc-header-sub">Hover or tap a card to flip it · Rarity based on championship position</div>
+  <!-- NOT LOGGED IN -->
+  <div id="cards-login-wall" style="display:none">
+    <div class="tc-header-bar" style="text-align:center;flex-direction:column;gap:12px;align-items:center">
+      <div style="font-size:36px">🃏</div>
+      <div class="tc-header-title">FP League <span>Card Collection</span></div>
+      <div class="tc-header-sub">Log in to your FP account to open packs and build your collection</div>
+      <button onclick="showSection('fantasy')" style="padding:10px 28px;background:var(--red);border:none;color:white;font-family:var(--f1);font-size:9px;font-weight:700;letter-spacing:2px;cursor:pointer;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);margin-top:4px">GO TO LOGIN →</button>
     </div>
-    <button onclick="packOpen()" style="padding:10px 22px;background:var(--red);border:none;color:white;font-family:var(--f1);font-size:9px;font-weight:700;letter-spacing:2px;cursor:pointer;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);flex-shrink:0;white-space:nowrap;box-shadow:0 0 16px var(--glow);transition:opacity .2s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">🃏 OPEN PACK</button>
   </div>
-  <div class="tc-filter-bar" id="tc-filter-bar">
-    <button class="tc-filter-btn active" onclick="tcFilter('all',this)">All Drivers</button>
-    <button class="tc-filter-btn" onclick="tcFilter('fp1',this)">FP 1</button>
-    <button class="tc-filter-btn" onclick="tcFilter('fp2',this)">FP 2</button>
-    <button class="tc-filter-btn" onclick="tcFilter('legendary',this)">⭐ Legendary</button>
-    <button class="tc-filter-btn" onclick="tcFilter('epic',this)">💜 Epic</button>
-    <button class="tc-filter-btn" onclick="tcFilter('rare',this)">🔵 Rare</button>
-    <button class="tc-filter-btn" onclick="tcFilter('common',this)">⬜ Common</button>
+  <!-- LOGGED IN -->
+  <div id="cards-main" style="display:none">
+    <!-- Top bar: balance + open pack button -->
+    <div class="tc-header-bar">
+      <div class="tc-header-icon">🃏</div>
+      <div class="tc-header-text" style="flex:1">
+        <div class="tc-header-title">FP League <span>Card Collection</span></div>
+        <div class="tc-header-sub" id="cards-username-line">Logged in</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;flex-shrink:0">
+        <div style="text-align:right">
+          <div style="font-family:var(--f1);font-size:18px;font-weight:900;color:var(--yellow)" id="cards-balance-display">0</div>
+          <div style="font-family:var(--f1);font-size:7px;letter-spacing:3px;color:var(--sub)">CREDITS</div>
+        </div>
+        <button onclick="packOpen()" style="padding:10px 22px;background:var(--red);border:none;color:white;font-family:var(--f1);font-size:9px;font-weight:700;letter-spacing:2px;cursor:pointer;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);white-space:nowrap;box-shadow:0 0 16px var(--glow);transition:opacity .2s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">🃏 OPEN PACK</button>
+      </div>
+    </div>
+    <!-- Collection filter bar -->
+    <div class="tc-filter-bar" id="tc-filter-bar">
+      <button class="tc-filter-btn active" onclick="tcFilter('all',this)">My Collection</button>
+      <button class="tc-filter-btn" onclick="tcFilter('fp1',this)">FP 1</button>
+      <button class="tc-filter-btn" onclick="tcFilter('fp2',this)">FP 2</button>
+      <button class="tc-filter-btn" onclick="tcFilter('legendary',this)">⭐ Legendary</button>
+      <button class="tc-filter-btn" onclick="tcFilter('epic',this)">💜 Epic</button>
+      <button class="tc-filter-btn" onclick="tcFilter('rare',this)">🔵 Rare</button>
+      <button class="tc-filter-btn" onclick="tcFilter('common',this)">⬜ Common</button>
+    </div>
+    <div class="tc-grid" id="tc-grid"></div>
   </div>
-  <div class="tc-grid" id="tc-grid"></div>
 </section>
 
 </main>
@@ -1678,24 +1698,101 @@ function renderPenalties(){
   }).join('');
 }
 
-// ── TRADING CARDS ─────────────────────────────────────
-let _tcFilter = 'all';
+// ══════════════════════════════════════════════════════════════════
+//  TRADING CARDS — CUSTOM CARD DEFINITIONS
+//  Edit CARDS array to add/remove cards. Pack pool = this array.
+// ══════════════════════════════════════════════════════════════════
+const CARDS = [
+  // ─── EXAMPLE CARDS (replace with real ones) ───
+  {
+    id: 'drv-001',
+    name: 'Driver Name',
+    code: 'DRV',
+    team: 'Team Name',
+    teamColor: '#E8001D',
+    div: 'FP 1',
+    rarity: 'legendary',   // legendary | epic | rare | common
+    photo: '',             // URL to photo, leave '' for placeholder
+    pts: 245,
+    wins: 8,
+    poles: 5,
+    podiums: 12,
+  },
+  {
+    id: 'drv-002',
+    name: 'Driver Name',
+    code: 'DR2',
+    team: 'Team Name',
+    teamColor: '#0057FF',
+    div: 'FP 1',
+    rarity: 'epic',
+    photo: '',
+    pts: 198,
+    wins: 4,
+    poles: 3,
+    podiums: 9,
+  },
+  {
+    id: 'drv-003',
+    name: 'Driver Name',
+    code: 'DR3',
+    team: 'Team Name',
+    teamColor: '#FF6B00',
+    div: 'FP 2',
+    rarity: 'rare',
+    photo: '',
+    pts: 145,
+    wins: 2,
+    poles: 1,
+    podiums: 5,
+  },
+  {
+    id: 'drv-004',
+    name: 'Driver Name',
+    code: 'DR4',
+    team: 'Team Name',
+    teamColor: '#8B00FF',
+    div: 'FP 2',
+    rarity: 'common',
+    photo: '',
+    pts: 60,
+    wins: 0,
+    poles: 0,
+    podiums: 2,
+  },
+];
 
-function getRarity(pos){
-  if(pos===1) return 'legendary';
-  if(pos<=3)  return 'epic';
-  if(pos<=6)  return 'rare';
-  return 'common';
+// ── MERGE DB CARDS ON LOAD ────────────────────────────────────────
+// If admin has saved cards via the panel they live in DB.cards.
+// We merge them into the CARDS array (DB version takes priority).
+function mergeDbCards(){
+  if(!DB||!DB.cards||!DB.cards.length) return;
+  // Replace entire array with DB version so admin is always source of truth
+  CARDS.length=0;
+  DB.cards.forEach(c=>CARDS.push(c));
 }
 
+// ── HELPERS ────────────────────────────────────────────────────────
 function rarityLabel(r){
   return {legendary:'LEGENDARY',epic:'EPIC',rare:'RARE',common:'COMMON'}[r]||'COMMON';
 }
-
-function posColor(p){
-  return p===1?'var(--yellow)':p===2?'#C0C0C0':p===3?'var(--orange)':'white';
+function rarityColor(r){
+  return {legendary:'var(--yellow)',epic:'var(--purple)',rare:'var(--blue)',common:'#555'}[r];
+}
+function rarityBorder(r){
+  return {legendary:'rgba(255,215,0,.35)',epic:'rgba(139,0,255,.35)',rare:'rgba(0,87,255,.3)',common:'#1a1a1a'}[r];
+}
+function rarityBarBg(r){
+  return {
+    legendary:'linear-gradient(90deg,#FFD700,#FF6B00,#FFD700) 0 0 / 200% 100%',
+    epic:'linear-gradient(90deg,#8B00FF,#BF7FFF,#8B00FF) 0 0 / 200% 100%',
+    rare:'linear-gradient(90deg,#0057FF,#4db3ff,#0057FF) 0 0 / 200% 100%',
+    common:'#1c1c1c'
+  }[r]||'#1c1c1c';
 }
 
+// ── FILTER ─────────────────────────────────────────────────────────
+let _tcFilter = 'all';
 function tcFilter(f, el){
   _tcFilter = f;
   document.querySelectorAll('.tc-filter-btn').forEach(b=>b.classList.remove('active'));
@@ -1703,676 +1800,178 @@ function tcFilter(f, el){
   renderCards();
 }
 
+// ── RENDER COLLECTION ─────────────────────────────────────────────
 function renderCards(){
-  // Build a flat list of all driver cards from both divisions
-  const allCards = [];
-  ['fp1','fp2'].forEach(div=>{
-    const srt = [...DB[div].drivers].sort((a,b)=>b.pts-a.pts);
-    const leader = srt[0]?.pts||0;
-    // Count wins from schedule results
-    const winMap={}, poleMap={}, podiumMap={};
-    DB[div].drivers.forEach(d=>{winMap[d.code]=0;poleMap[d.code]=d.poles||0;podiumMap[d.code]=0;});
-    DB[div].schedule.forEach(race=>{
-      if(!race.results) return;
-      race.results.forEach(r=>{
-        if(r.pos===1&&!r.dnf) winMap[r.driver]=(winMap[r.driver]||0)+1;
-        if(r.pos<=3&&!r.dnf) podiumMap[r.driver]=(podiumMap[r.driver]||0)+1;
-      });
-    });
-    srt.forEach((dr,i)=>{
-      allCards.push({
-        ...dr,
-        div,
-        divLabel: div==='fp1'?DB.settings.fp1Name:DB.settings.fp2Name,
-        rarity: getRarity(i+1),
-        rankInDiv: i+1,
-        teamColor: DB[div].teams[dr.team]?.color||'#555',
-        teamName: DB[div].teams[dr.team]?.name||'—',
-        wins: winMap[dr.code]||0,
-        podiums: podiumMap[dr.code]||0,
-        poles: poleMap[dr.code]||0,
-        leader,
-      });
-    });
-  });
+  const wall = document.getElementById('cards-login-wall');
+  const main = document.getElementById('cards-main');
+  if(!FANTASY_ME){ wall.style.display='block'; main.style.display='none'; return; }
+  wall.style.display='none'; main.style.display='block';
+
+  const me = FANTASY_USERS.find(u=>u.username===FANTASY_ME.username)||FANTASY_ME;
+  const credits = me.credits||0;
+  const owned = new Set((me.cardCollection||[]).map(c=>c.id));
+
+  document.getElementById('cards-username-line').textContent =
+    me.username + ' · ' + owned.size + ' card' + (owned.size!==1?'s':'') + ' collected';
+  document.getElementById('cards-balance-display').textContent = credits.toLocaleString();
+
+  // Only show cards the user owns
+  let myCards = CARDS.filter(c=>owned.has(c.id));
 
   // Apply filter
-  let filtered = allCards;
-  if(_tcFilter==='fp1') filtered=allCards.filter(c=>c.div==='fp1');
-  else if(_tcFilter==='fp2') filtered=allCards.filter(c=>c.div==='fp2');
+  if(_tcFilter==='fp1') myCards=myCards.filter(c=>c.div==='FP 1');
+  else if(_tcFilter==='fp2') myCards=myCards.filter(c=>c.div==='FP 2');
   else if(['legendary','epic','rare','common'].includes(_tcFilter))
-    filtered=allCards.filter(c=>c.rarity===_tcFilter);
+    myCards=myCards.filter(c=>c.rarity===_tcFilter);
 
-  // Sort: legendary first, then by pts desc
-  const rarityOrder={legendary:0,epic:1,rare:2,common:3};
-  filtered.sort((a,b)=>{
-    const rd=rarityOrder[a.rarity]-rarityOrder[b.rarity];
-    return rd!==0?rd:b.pts-a.pts;
-  });
+  // Sort legendary first
+  const ro={legendary:0,epic:1,rare:2,common:3};
+  myCards.sort((a,b)=> ro[a.rarity]-ro[b.rarity] || b.pts-a.pts);
 
   const grid = document.getElementById('tc-grid');
-  if(!filtered.length){
-    grid.innerHTML='<div style="color:var(--sub);font-size:14px;padding:20px 0;grid-column:1/-1">No cards match this filter.</div>';
+  if(!myCards.length){
+    const all = CARDS.filter(c=>owned.has(c.id));
+    grid.innerHTML = all.length===0
+      ? `<div style="grid-column:1/-1;text-align:center;padding:60px 20px">
+           <div style="font-size:48px;margin-bottom:16px">📭</div>
+           <div style="font-family:var(--f1);font-size:14px;font-weight:700;color:white;margin-bottom:8px">No cards yet</div>
+           <div style="font-size:13px;color:var(--sub)">Open packs to start your collection</div>
+         </div>`
+      : `<div style="color:var(--sub);font-size:14px;padding:20px 0;grid-column:1/-1">No cards match this filter.</div>`;
     return;
   }
 
-  grid.innerHTML = filtered.map((c,i)=>{
-    const pc = posColor(c.rankInDiv);
-    const barColor = c.rarity==='legendary'?'var(--yellow)':c.rarity==='epic'?'var(--purple)':c.rarity==='rare'?'var(--blue)':'#333';
-    const ptsPct = c.leader>0?Math.round((c.pts/c.leader)*100):0;
-    const winPct = Math.min(100, (c.wins||0)*20);
-    const divBg = c.div==='fp1'?'rgba(232,0,29,.15)':'rgba(0,87,255,.15)';
-    const divColor = c.div==='fp1'?'var(--red)':'var(--blue)';
-
-    // FRONT FACE
-    const front = `<div class="tc-card rarity-${c.rarity}">
-      <div class="tc-rarity-bar"></div>
-      <div class="tc-photo-area">
-        <div class="tc-photo-bg" style="background:radial-gradient(ellipse at 50% 0%,${c.teamColor}22,#050505)"></div>
-        ${c.photo?`<img class="tc-photo" src="${c.photo}" alt="${c.name}" crossorigin="anonymous" onerror="this.style.display='none'"><div class="tc-photo-placeholder" style="display:none">${c.code}</div>`:`<div class="tc-photo-placeholder">${c.code}</div>`}
-        <div class="tc-photo-grad"></div>
-        <div class="tc-rarity-badge">${rarityLabel(c.rarity)}</div>
-        <div class="tc-pos-badge" style="color:${pc}">P${c.rankInDiv}</div>
-        <div class="tc-team-bar" style="background:${c.teamColor};box-shadow:0 0 8px ${c.teamColor}66"></div>
-      </div>
-      <div class="tc-info">
-        <div>
-          <div class="tc-name">${c.name}</div>
-          <div class="tc-team-name">${c.teamName} · ${c.divLabel}</div>
-        </div>
-        <div class="tc-stats-mini">
-          <div class="tc-stat-mini"><div class="tc-stat-mini-val" style="color:var(--yellow)">${c.wins}</div><div class="tc-stat-mini-lbl">Wins</div></div>
-          <div class="tc-stat-mini"><div class="tc-stat-mini-val" style="color:var(--purple)">${c.poles}</div><div class="tc-stat-mini-lbl">Poles</div></div>
-          <div class="tc-stat-mini"><div class="tc-stat-mini-val" style="color:${pc}">${c.pts}</div><div class="tc-stat-mini-lbl">PTS</div></div>
-        </div>
-      </div>
-    </div>`;
-
-    // BACK FACE
-    const back = `<div class="tc-card-back rarity-${c.rarity}" style="border-color:${c.rarity==='legendary'?'rgba(255,215,0,.25)':c.rarity==='epic'?'rgba(139,0,255,.25)':c.rarity==='rare'?'rgba(0,87,255,.2)':'#1c1c1c'}">
-      <div class="tc-back-header" style="border-top:2px solid ${c.teamColor}">
-        <div class="tc-back-code" style="color:${c.teamColor}">${c.code}</div>
-        <div class="tc-back-name-wrap">
-          <div class="tc-back-full-name">${c.name}</div>
-          <div class="tc-back-team">${c.teamName}</div>
-        </div>
-      </div>
-      <div class="tc-back-stats">
-        <div class="tc-back-stat-row">
-          <div><div class="tc-back-stat-lbl">Championship Pts</div><div class="tc-back-stat-bar-wrap"><div class="tc-back-stat-bar" style="width:${ptsPct}%;background:${barColor}"></div></div></div>
-          <div class="tc-back-stat-val" style="color:${pc}">${c.pts}</div>
-        </div>
-        <div class="tc-back-stat-row">
-          <div><div class="tc-back-stat-lbl">Race Wins</div><div class="tc-back-stat-bar-wrap"><div class="tc-back-stat-bar" style="width:${winPct}%;background:var(--yellow)"></div></div></div>
-          <div class="tc-back-stat-val" style="color:var(--yellow)">${c.wins}</div>
-        </div>
-        <div class="tc-back-stat-row">
-          <div><div class="tc-back-stat-lbl">Podiums</div><div class="tc-back-stat-bar-wrap"><div class="tc-back-stat-bar" style="width:${Math.min(100,c.podiums*15)}%;background:#CD7F32"></div></div></div>
-          <div class="tc-back-stat-val" style="color:#CD7F32">${c.podiums}</div>
-        </div>
-        <div class="tc-back-stat-row">
-          <div><div class="tc-back-stat-lbl">Pole Positions</div><div class="tc-back-stat-bar-wrap"><div class="tc-back-stat-bar" style="width:${Math.min(100,c.poles*20)}%;background:var(--purple)"></div></div></div>
-          <div class="tc-back-stat-val" style="color:var(--purple)">${c.poles}</div>
-        </div>
-        <div class="tc-back-stat-row">
-          <div><div class="tc-back-stat-lbl">Championship Pos</div></div>
-          <div class="tc-back-stat-val" style="color:${pc}">P${c.rankInDiv}</div>
-        </div>
-      </div>
-      <div class="tc-back-footer">
-        <div>
-          <div class="tc-back-pts" style="color:${barColor}">${c.pts}</div>
-          <div class="tc-back-pts-lbl">POINTS</div>
-        </div>
-        <div class="tc-back-div-badge" style="background:${divBg};color:${divColor}">${c.divLabel}</div>
-      </div>
-    </div>`;
-
-    return `<div class="tc-flip-wrap" onclick="this.classList.toggle('flipped')" title="Click to flip">
-      <div class="tc-flip-inner">
-        <div class="tc-face">${front}</div>
-        <div class="tc-face tc-back-face">${back}</div>
-      </div>
-    </div>`;
-  }).join('');
+  grid.innerHTML = myCards.map(c => buildCardFlipHTML(c)).join('');
 }
 
-// ── FANTASY LEAGUE ───────────────────────────────────
-let FANTASY_USERS = [];
-let FANTASY_ME = null; // logged-in user object
-
-async function hashPw(pw){
-  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pw));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-
-async function loadFantasyUsers(){
-  if(!FANTASY_ENABLED) return;
-  try{
-    const res=await fetch(`https://api.jsonbin.io/v3/b/${FANTASY_BIN_ID}/latest`,{headers:{'X-Bin-Meta':false}});
-    if(res.ok){
-      const data=await res.json();
-      FANTASY_USERS=Array.isArray(data.users)?data.users:(data.users?Object.values(data.users):[]);
-    }
-  }catch(e){}
-}
-
-async function saveFantasyUsers(){
-  if(!FANTASY_ENABLED) return;
-  await fetch(`https://api.jsonbin.io/v3/b/${FANTASY_BIN_ID}`,{
-    method:'PUT',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({users:FANTASY_USERS})
-  });
-}
-
-function fantasyPts(user){
-  const fp1dr=DB.fp1.drivers.find(d=>d.code===user.fp1Pick);
-  const fp2dr=DB.fp2.drivers.find(d=>d.code===user.fp2Pick);
-  return (fp1dr?.pts||0)+(fp2dr?.pts||0);
-}
-
-async function renderFantasy(){
-  await loadFantasyUsers();
-
-  // restore session
-  const saved=sessionStorage.getItem('fpFantasyUser');
-  if(saved&&!FANTASY_ME){
-    try{ FANTASY_ME=JSON.parse(saved); }catch(e){}
-  }
-
-  // Leaderboard
-  const sorted=[...FANTASY_USERS].filter(u=>u.fp1Pick&&u.fp2Pick)
-    .map(u=>({...u,total:fantasyPts(u)}))
-    .sort((a,b)=>b.total-a.total);
-
-  const lbList=document.getElementById('fantasy-lb-list');
-  document.getElementById('flb-count').textContent=`${sorted.length} PLAYER${sorted.length!==1?'S':''}`;
-  const posColor=i=>i===0?'var(--yellow)':i===1?'#C0C0C0':i===2?'var(--orange)':'var(--sub)';
-
-  lbList.innerHTML=sorted.length?sorted.map((u,i)=>{
-    const isMe=FANTASY_ME&&u.username===FANTASY_ME.username;
-    const fp1dr=DB.fp1.drivers.find(d=>d.code===u.fp1Pick);
-    const fp2dr=DB.fp2.drivers.find(d=>d.code===u.fp2Pick);
-    return `<div class="flb-row ${isMe?'me':''}">
-      <div class="flb-pos" style="color:${posColor(i)}">${i+1}</div>
-      <div class="flb-info">
-        <div class="flb-name">${u.username}${isMe?' <span style="font-family:var(--f1);font-size:8px;color:var(--purple);letter-spacing:2px">YOU</span>':''}</div>
-        <div class="flb-picks">${fp1dr?fp1dr.name:'?'} (FP1) · ${fp2dr?fp2dr.name:'?'} (FP2)</div>
-      </div>
-      <div class="flb-pts">${u.total}</div>
-    </div>`;
-  }).join(''):'<div style="padding:24px;text-align:center;font-size:13px;color:var(--sub)">No entries yet. Be the first!</div>';
-
-  // Right panel
-  const panel=document.getElementById('fantasy-right-panel');
-  if(!FANTASY_ENABLED){
-    panel.innerHTML=`<div class="auth-card"><div style="font-size:13px;color:var(--sub)">Fantasy setup needed — add FANTASY_BIN_ID to the site.</div></div>`;
-    return;
-  }
-
-  if(FANTASY_ME){
-    const me=FANTASY_USERS.find(u=>u.username===FANTASY_ME.username)||FANTASY_ME;
-    const fp1dr=DB.fp1.drivers.find(d=>d.code===me.fp1Pick);
-    const fp2dr=DB.fp2.drivers.find(d=>d.code===me.fp2Pick);
-    const hasPicks=me.fp1Pick&&me.fp2Pick;
-
-    if(hasPicks){
-      const tc1=fp1dr?DB.fp1.teams[fp1dr.team]?.color||'#555':'#555';
-      const tc2=fp2dr?DB.fp2.teams[fp2dr.team]?.color||'#555':'#555';
-      panel.innerHTML=`<div class="my-team-card">
-        <div class="mt-header">
-          <div class="mt-title">MY FANTASY TEAM</div>
-          <div class="mt-user">${me.username}</div>
-        </div>
-        <div class="mt-pick" style="border-left:3px solid ${tc1}">
-          <div>
-            <div class="mt-pick-div">FP1 PICK</div>
-            <div class="mt-pick-name">${fp1dr?fp1dr.name:'—'}</div>
-          </div>
-          <div style="text-align:right">
-            <div class="mt-pick-pts">${fp1dr?.pts||0} pts</div>
-            <div style="font-family:var(--f1);font-size:10px;color:var(--purple);margin-top:2px">£${fp1dr?.fantasyValue||10}m</div>
-          </div>
-        </div>
-        <div class="mt-pick" style="border-left:3px solid ${tc2}">
-          <div>
-            <div class="mt-pick-div">FP2 PICK</div>
-            <div class="mt-pick-name">${fp2dr?fp2dr.name:'—'}</div>
-          </div>
-          <div style="text-align:right">
-            <div class="mt-pick-pts">${fp2dr?.pts||0} pts</div>
-            <div style="font-family:var(--f1);font-size:10px;color:var(--purple);margin-top:2px">£${fp2dr?.fantasyValue||10}m</div>
-          </div>
-        </div>
-        <div class="mt-total">
-          <div>
-            <div class="mt-total-lbl">TOTAL FANTASY PTS</div>
-            <div style="font-family:var(--f1);font-size:10px;color:var(--sub);margin-top:3px;letter-spacing:1px">TEAM VALUE: <span style="color:var(--purple)">£${(fp1dr?.fantasyValue||0)+(fp2dr?.fantasyValue||0)}m</span> / £${DB.settings.fantasyBudget||25}m</div>
-          </div>
-          <div class="mt-total-pts">${fantasyPts(me)}</div>
-        </div>
-        <span class="mt-logout" onclick="fantasyLogout()">Log out</span>
-      </div>`;
-    } else {
-      panel.innerHTML=fantasyPickHTML(me);
-    }
-  } else {
-    panel.innerHTML=`<div class="auth-card">
-      <div class="auth-tabs">
-        <div class="auth-tab active" onclick="fantasyAuthTab('login',this)">LOGIN</div>
-        <div class="auth-tab" onclick="fantasyAuthTab('signup',this)">SIGN UP</div>
-      </div>
-      <div id="fantasy-auth-form"></div>
-    </div>`;
-    fantasyAuthTab('login',document.querySelector('.auth-tab.active'));
-  }
-}
-
-function fantasyBudgetInfo(me){
-  const budget=DB.settings.fantasyBudget||25;
-  const fp1dr=DB.fp1.drivers.find(d=>d.code===me.fp1Pick);
-  const fp2dr=DB.fp2.drivers.find(d=>d.code===me.fp2Pick);
-  const spent=(fp1dr?.fantasyValue||0)+(fp2dr?.fantasyValue||0);
-  const remaining=budget-spent;
-  const pct=Math.min(100,Math.round((spent/budget)*100));
-  const overBudget=spent>budget;
-  return {budget,spent,remaining,pct,overBudget};
-}
-
-function fantasyPickHTML(me){
-  const fp1sorted=[...DB.fp1.drivers].sort((a,b)=>b.pts-a.pts);
-  const fp2sorted=[...DB.fp2.drivers].sort((a,b)=>b.pts-a.pts);
-  const {budget,spent,remaining,pct,overBudget}=fantasyBudgetInfo(me);
-  const budgetColor=overBudget?'var(--red)':remaining<=3?'var(--orange)':'var(--purple)';
-
-  const fp1rows=fp1sorted.map(dr=>{
-    const col=DB.fp1.teams[dr.team]?.color||'#555';
-    const val=dr.fantasyValue||10;
-    return `<div class="pick-driver-row ${me.fp1Pick===dr.code?'selected':''}" onclick="fantasySelectPick('fp1','${dr.code}',this)">
-      <div class="pick-dot" style="background:${col};clip-path:polygon(0 0,80% 0,100% 100%,20% 100%)"></div>
-      <div class="pick-name">${dr.name}</div>
-      <div class="pick-code">${dr.code}</div>
-      <div class="pick-pts">${dr.pts} pts</div>
-      <div style="font-family:var(--f1);font-size:11px;font-weight:900;color:var(--purple);min-width:38px;text-align:right">£${val}m</div>
-      <div class="pick-check">✓</div>
-    </div>`;
-  }).join('');
-  const fp2rows=fp2sorted.map(dr=>{
-    const col=DB.fp2.teams[dr.team]?.color||'#555';
-    const val=dr.fantasyValue||10;
-    return `<div class="pick-driver-row ${me.fp2Pick===dr.code?'selected':''}" onclick="fantasySelectPick('fp2','${dr.code}',this)">
-      <div class="pick-dot" style="background:${col};clip-path:polygon(0 0,80% 0,100% 100%,20% 100%)"></div>
-      <div class="pick-name">${dr.name}</div>
-      <div class="pick-code">${dr.code}</div>
-      <div class="pick-pts">${dr.pts} pts</div>
-      <div style="font-family:var(--f1);font-size:11px;font-weight:900;color:var(--purple);min-width:38px;text-align:right">£${val}m</div>
-      <div class="pick-check">✓</div>
-    </div>`;
-  }).join('');
-
-  const canConfirm=me.fp1Pick&&me.fp2Pick&&!overBudget;
-  return `<div class="pick-card">
-    <div class="pick-title">PICK YOUR TEAM</div>
-    <div class="pick-sub">Select 1 driver from each division. Stay within your £${budget}m budget.</div>
-
-    <!-- Budget meter -->
-    <div style="background:#0A0A0A;border:1px solid #1a1a1a;padding:12px 14px;margin-bottom:14px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <span style="font-family:var(--f1);font-size:9px;letter-spacing:2px;color:var(--sub)">BUDGET</span>
-        <span style="font-family:var(--f1);font-size:13px;font-weight:900;color:${budgetColor}">£${spent}m <span style="color:var(--sub);font-size:9px">/ £${budget}m</span></span>
-      </div>
-      <div style="height:4px;background:#1a1a1a;border-radius:2px;overflow:hidden;">
-        <div style="height:100%;width:${pct}%;background:${budgetColor};transition:width .3s,background .3s;box-shadow:0 0 6px ${budgetColor}66"></div>
-      </div>
-      ${overBudget?`<div style="font-size:11px;color:var(--red);margin-top:6px;font-family:var(--f1);letter-spacing:1px">OVER BUDGET — swap a driver to continue</div>`:remaining===0&&!overBudget?`<div style="font-size:11px;color:var(--green);margin-top:6px">Budget fully spent!</div>`:''}
+// ── CARD HTML BUILDERS ────────────────────────────────────────────
+function buildCardFlipHTML(c){
+  return `<div class="tc-flip-wrap" onclick="this.classList.toggle('flipped')" title="Click to flip">
+    <div class="tc-flip-inner">
+      <div class="tc-face">${buildCardFront(c)}</div>
+      <div class="tc-face tc-back-face">${buildCardBack(c)}</div>
     </div>
-
-    <div class="pick-div-title">FP 1 DRIVER</div>${fp1rows}
-    <div class="pick-div-title">FP 2 DRIVER</div>${fp2rows}
-    <button class="confirm-btn" id="confirm-picks-btn" onclick="fantasyConfirmPicks()" ${canConfirm?'':'disabled'}>CONFIRM TEAM</button>
-    <div class="auth-msg" id="pick-msg"></div>
   </div>`;
 }
 
-function fantasySelectPick(div,code,el){
-  if(!FANTASY_ME) return;
-  // deselect others in same div
-  el.closest('.pick-card').querySelectorAll(`.pick-driver-row`).forEach(r=>{
-    if(r.parentElement===el.parentElement||true){
-      // only deselect within same group — find rows for this div
-    }
-  });
-  // Get all rows for this div (between the two div titles)
-  const card=el.closest('.pick-card');
-  const allRows=card.querySelectorAll('.pick-driver-row');
-  // figure out which rows belong to fp1 vs fp2 by re-reading
-  FANTASY_ME[div+'Pick']=code;
-  const user=FANTASY_USERS.find(u=>u.username===FANTASY_ME.username);
-  if(user) user[div+'Pick']=code;
-  sessionStorage.setItem('fpFantasyUser',JSON.stringify(FANTASY_ME));
-  // re-render picks section only
-  document.getElementById('fantasy-right-panel').innerHTML=fantasyPickHTML(FANTASY_ME);
-  const btn=document.getElementById('confirm-picks-btn');
-  if(btn) btn.disabled=!(FANTASY_ME.fp1Pick&&FANTASY_ME.fp2Pick);
+function buildCardFront(c, heightOverride=''){
+  const rc = rarityColor(c.rarity);
+  const rl = rarityLabel(c.rarity);
+  const rb = rarityBarBg(c.rarity);
+  const maxPts = Math.max(...CARDS.map(x=>x.pts), 1);
+  const ptsPct = Math.round((c.pts/maxPts)*100);
+  return `<div class="tc-card rarity-${c.rarity}" style="width:100%;height:100%${heightOverride?';':''}${heightOverride}">
+    <div class="tc-rarity-bar" style="background:${rb}${c.rarity!=='common'?';animation:shimmer 2s linear infinite':''}"></div>
+    <div class="tc-photo-area">
+      <div class="tc-photo-bg" style="background:radial-gradient(ellipse at 50% 0%,${c.teamColor}22,#050505)"></div>
+      ${c.photo
+        ? `<img class="tc-photo" src="${c.photo}" alt="${c.name}" crossorigin="anonymous" onerror="this.style.display='none'"><div class="tc-photo-placeholder" style="display:none">${c.code}</div>`
+        : `<div class="tc-photo-placeholder">${c.code}</div>`}
+      <div class="tc-photo-grad"></div>
+      <div class="tc-rarity-badge" style="background:${c.rarity==='legendary'?'#FFD700':c.rarity==='epic'?'#8B00FF':c.rarity==='rare'?'#0057FF':'#222'};color:${c.rarity==='legendary'?'#000':'white'}">${rl}</div>
+      <div class="tc-team-bar" style="background:${c.teamColor};box-shadow:0 0 8px ${c.teamColor}66"></div>
+    </div>
+    <div class="tc-info">
+      <div>
+        <div class="tc-name">${c.name}</div>
+        <div class="tc-team-name">${c.team} · ${c.div}</div>
+      </div>
+      <div class="tc-stats-mini">
+        <div class="tc-stat-mini"><div class="tc-stat-mini-val" style="color:var(--yellow)">${c.wins}</div><div class="tc-stat-mini-lbl">Wins</div></div>
+        <div class="tc-stat-mini"><div class="tc-stat-mini-val" style="color:var(--purple)">${c.poles}</div><div class="tc-stat-mini-lbl">Poles</div></div>
+        <div class="tc-stat-mini"><div class="tc-stat-mini-val" style="color:${rc}">${c.pts}</div><div class="tc-stat-mini-lbl">PTS</div></div>
+      </div>
+    </div>
+  </div>`;
 }
 
-async function fantasyConfirmPicks(){
-  const btn=document.getElementById('confirm-picks-btn');
-  if(btn) btn.disabled=true;
-  const msg=document.getElementById('pick-msg');
-  if(msg){msg.style.color='var(--sub)';msg.textContent='Saving…';}
-  const idx=FANTASY_USERS.findIndex(u=>u.username===FANTASY_ME.username);
-  if(idx>=0){ FANTASY_USERS[idx].fp1Pick=FANTASY_ME.fp1Pick; FANTASY_USERS[idx].fp2Pick=FANTASY_ME.fp2Pick; }
-  try{
-    await saveFantasyUsers();
-    sessionStorage.setItem('fpFantasyUser',JSON.stringify(FANTASY_ME));
-    renderFantasy();
-  }catch(e){
-    if(msg){msg.style.color='var(--red)';msg.textContent='Save failed. Try again.';}
-    if(btn) btn.disabled=false;
-  }
+function buildCardBack(c){
+  const rc = rarityColor(c.rarity);
+  const rb = rarityBarBg(c.rarity);
+  const maxPts = Math.max(...CARDS.map(x=>x.pts), 1);
+  const ptsPct = Math.round((c.pts/maxPts)*100);
+  const winPct = Math.min(100,(c.wins||0)*15);
+  const podPct = Math.min(100,(c.podiums||0)*10);
+  const polPct = Math.min(100,(c.poles||0)*18);
+  const divBg = c.div==='FP 1'?'rgba(232,0,29,.15)':'rgba(0,87,255,.15)';
+  const divColor = c.div==='FP 1'?'var(--red)':'var(--blue)';
+  return `<div class="tc-card-back" style="width:100%;height:100%;border-color:${rarityBorder(c.rarity)}">
+    <div class="tc-back-header" style="border-top:2px solid ${c.teamColor}">
+      <div class="tc-back-code" style="color:${c.teamColor}">${c.code}</div>
+      <div>
+        <div class="tc-back-full-name">${c.name}</div>
+        <div class="tc-back-team">${c.team}</div>
+      </div>
+    </div>
+    <div class="tc-back-stats">
+      <div class="tc-back-stat-row">
+        <div><div class="tc-back-stat-lbl">Points</div><div class="tc-back-stat-bar-wrap"><div class="tc-back-stat-bar" style="width:${ptsPct}%;background:${rc}"></div></div></div>
+        <div class="tc-back-stat-val" style="color:${rc}">${c.pts}</div>
+      </div>
+      <div class="tc-back-stat-row">
+        <div><div class="tc-back-stat-lbl">Race Wins</div><div class="tc-back-stat-bar-wrap"><div class="tc-back-stat-bar" style="width:${winPct}%;background:var(--yellow)"></div></div></div>
+        <div class="tc-back-stat-val" style="color:var(--yellow)">${c.wins}</div>
+      </div>
+      <div class="tc-back-stat-row">
+        <div><div class="tc-back-stat-lbl">Podiums</div><div class="tc-back-stat-bar-wrap"><div class="tc-back-stat-bar" style="width:${podPct}%;background:#CD7F32"></div></div></div>
+        <div class="tc-back-stat-val" style="color:#CD7F32">${c.podiums}</div>
+      </div>
+      <div class="tc-back-stat-row">
+        <div><div class="tc-back-stat-lbl">Pole Positions</div><div class="tc-back-stat-bar-wrap"><div class="tc-back-stat-bar" style="width:${polPct}%;background:var(--purple)"></div></div></div>
+        <div class="tc-back-stat-val" style="color:var(--purple)">${c.poles}</div>
+      </div>
+    </div>
+    <div class="tc-back-footer">
+      <div>
+        <div class="tc-back-pts" style="color:${rc}">${c.pts}</div>
+        <div class="tc-back-pts-lbl">POINTS</div>
+      </div>
+      <div class="tc-back-div-badge" style="background:${divBg};color:${divColor}">${c.div}</div>
+    </div>
+  </div>`;
 }
 
-function fantasyAuthTab(tab,el){
-  document.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  const form=document.getElementById('fantasy-auth-form');
-  if(tab==='login'){
-    form.innerHTML=`
-      <input class="auth-input" id="fa-user" placeholder="Username" autocomplete="username">
-      <input class="auth-input" id="fa-pw" type="password" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')fantasyLogin()">
-      <button class="auth-btn" onclick="fantasyLogin()">LOGIN</button>
-      <div class="auth-msg" id="auth-msg"></div>`;
-  } else {
-    form.innerHTML=`
-      <input class="auth-input" id="fa-user" placeholder="Choose a username" autocomplete="username">
-      <input class="auth-input" id="fa-pw" type="password" placeholder="Choose a password" autocomplete="new-password">
-      <input class="auth-input" id="fa-pw2" type="password" placeholder="Confirm password" onkeydown="if(event.key==='Enter')fantasySignup()">
-      <button class="auth-btn" onclick="fantasySignup()">CREATE ACCOUNT</button>
-      <div class="auth-msg" id="auth-msg"></div>`;
-  }
+// ── PACK OPENING ──────────────────────────────────────────────────
+const PACK_COSTS={standard:60,premium:250,elite:900};
+let _packCards=[], _packIdx=0, _packRevealing=false, _packType='standard';
+
+function poolByType(type){
+  if(type==='standard') return CARDS;
+  if(type==='premium') return CARDS.filter(c=>c.rarity==='epic'||c.rarity==='rare'||c.rarity==='legendary');
+  if(type==='elite') return CARDS.filter(c=>c.rarity==='legendary'||c.rarity==='epic');
+  return CARDS;
 }
 
-async function fantasyLogin(){
-  const username=document.getElementById('fa-user')?.value.trim();
-  const pw=document.getElementById('fa-pw')?.value;
-  const msg=document.getElementById('auth-msg');
-  if(!username||!pw){msg.style.color='var(--red)';msg.textContent='Fill in both fields.';return;}
-  msg.style.color='var(--sub)';msg.textContent='Logging in…';
-  const hash=await hashPw(pw);
-    const user=FANTASY_USERS.find(u=>u.username.toLowerCase()===username.toLowerCase()&&u.passwordHash===hash);
-  if(!user){msg.style.color='var(--red)';msg.textContent='Wrong username or password.';return;}
-  FANTASY_ME={...user};
-  sessionStorage.setItem('fpFantasyUser',JSON.stringify(FANTASY_ME));
-  renderFantasy();
-}
-
-async function fantasySignup(){
-  const username=document.getElementById('fa-user')?.value.trim();
-  const pw=document.getElementById('fa-pw')?.value;
-  const pw2=document.getElementById('fa-pw2')?.value;
-  const msg=document.getElementById('auth-msg');
-  if(!username||!pw){msg.style.color='var(--red)';msg.textContent='Fill in all fields.';return;}
-  if(pw!==pw2){msg.style.color='var(--red)';msg.textContent='Passwords do not match.';return;}
-  if(username.length<3){msg.style.color='var(--red)';msg.textContent='Username must be at least 3 characters.';return;}
-  if(FANTASY_USERS.find(u=>u.username.toLowerCase()===username.toLowerCase())){
-    msg.style.color='var(--red)';msg.textContent='Username already taken.';return;
-  }
-  msg.style.color='var(--sub)';msg.textContent='Creating account…';
-  const hash=await hashPw(pw);
-  const newUser={username,passwordHash:hash,fp1Pick:null,fp2Pick:null,createdAt:new Date().toISOString()};
-  FANTASY_USERS.push(newUser);
-  try{
-    await saveFantasyUsers();
-    FANTASY_ME={...newUser};
-    sessionStorage.setItem('fpFantasyUser',JSON.stringify(FANTASY_ME));
-    renderFantasy();
-  }catch(e){
-    FANTASY_USERS.pop();
-    msg.style.color='var(--red)';msg.textContent='Sign up failed. Try again.';
-  }
-}
-
-function fantasyLogout(){
-  FANTASY_ME=null;
-  sessionStorage.removeItem('fpFantasyUser');
-  renderFantasy();
-}
-
-// ── COUNTDOWN ────────────────────────────────────
-let _cdTarget=null;
-function startCountdown(dateStr,timeStr){
-  if(!dateStr)return;
-  try{
-    const [h,m]=(timeStr||'15:00').split(':').map(Number);
-    const midnight=new Date(dateStr+'T00:00:00Z');
-    const guessUTC=new Date(midnight.getTime()+h*3600000+m*60000);
-    const londonH=parseInt(guessUTC.toLocaleString('en-GB',{timeZone:'Europe/London',hour:'2-digit',hour12:false}));
-    const londonM=parseInt(guessUTC.toLocaleString('en-GB',{timeZone:'Europe/London',minute:'2-digit'}));
-    const diffMs=((londonH*60+londonM)-(h*60+m))*60000;
-    _cdTarget=new Date(guessUTC.getTime()-diffMs);
-  }catch(e){return;}
-}
-setInterval(()=>{
-  if(!_cdTarget)return;
-  const diff=_cdTarget-new Date();
-  if(diff<=0){['days','hrs','min','sec'].forEach(k=>document.getElementById('cd-'+k).textContent='00');return;}
-  document.getElementById('cd-days').textContent=String(Math.floor(diff/86400000)).padStart(2,'0');
-  document.getElementById('cd-hrs').textContent=String(Math.floor((diff%86400000)/3600000)).padStart(2,'0');
-  document.getElementById('cd-min').textContent=String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
-  document.getElementById('cd-sec').textContent=String(Math.floor((diff%60000)/1000)).padStart(2,'0');
-},1000);
-
-function updateTicker(){
-  try{
-    const fp1leader=sorted('fp1')[0];
-    const fp2leader=sorted('fp2')[0];
-    const fp1next=DB.fp1.schedule.find(r=>r.status==='next')||DB.fp1.schedule.find(r=>r.status==='upcoming');
-    const fp2next=DB.fp2.schedule.find(r=>r.status==='next')||DB.fp2.schedule.find(r=>r.status==='upcoming');
-    const nextRace=fp1next||fp2next;
-    ['tick-fp1-leader','tick-fp1-leader2'].forEach(id=>{
-      const el=document.getElementById(id);
-      if(el&&fp1leader) el.innerHTML=`${DB.settings.fp1Name||'FP1'} LEADER: <span>${fp1leader.name} — ${fp1leader.pts} PTS</span>`;
-    });
-    ['tick-fp2-leader','tick-fp2-leader2'].forEach(id=>{
-      const el=document.getElementById(id);
-      if(el&&fp2leader) el.innerHTML=`${DB.settings.fp2Name||'FP2'} LEADER: <span>${fp2leader.name} — ${fp2leader.pts} PTS</span>`;
-    });
-    ['tick-next','tick-next2'].forEach(id=>{
-      const el=document.getElementById(id);
-      if(el&&nextRace) el.innerHTML=`NEXT RACE: <span>${nextRace.name}</span> \xb7 ${fmtDate(nextRace.date)}`;
-    });
-  }catch(e){}
-}
-
-// ═══ SEASON RESET BROADCAST ═══
-let _srSeenAt=parseInt(sessionStorage.getItem('fpLastSeasonReset')||'0');
-
-async function checkSeasonReset(){
-  if(!JSONBIN_ENABLED)return;
-  try{
-    const res=await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`,{headers:{'X-Master-Key':JSONBIN_KEY,'X-Bin-Meta':false}});
-    if(!res.ok)return;
-    const data=await res.json();
-    const ts=data?.settings?.seasonResetAt||0;
-    if(ts>0&&ts>_srSeenAt){
-      _srSeenAt=ts;
-      sessionStorage.setItem('fpLastSeasonReset',String(ts));
-      const champs=data?.settings?.lastSeasonChampions||null;
-      DB=sanitizeDB(data);
-      triggerSeasonResetAnimation(champs);
-    }
-  }catch(e){}
-}
-// Poll every 30s (not 5s) — avoids hammering JSONBin free-tier quota.
-// Skip while tab is hidden to reduce usage further.
-setInterval(()=>{if(document.visibilityState==='visible')checkSeasonReset();},30000);
-
-async function triggerSeasonResetAnimation(champs){
-  const ov=document.getElementById('sr-overlay');
-  const ph1=document.getElementById('sr-champs-phase');
-  const ph2=document.getElementById('sr-countdown-phase');
-  const ph3=document.getElementById('sr-newseason-phase');
-  const flash=document.getElementById('sr-flash');
-  const cdNum=document.getElementById('sr-cd-number');
-
-  const endedSeason=(champs?.season)||DB.settings.season||1;
-  const snum=document.getElementById('sr-season-num');
-  if(snum)snum.textContent=endedSeason;
-
-  const set=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val||'—';};
-  if(champs){
-    set('sr-fp1-wdc-name',champs.fp1WDC?.name);
-    set('sr-fp1-wdc-pts',champs.fp1WDC?.pts!=null?champs.fp1WDC.pts+' PTS':'');
-    set('sr-fp1-wcc-name',champs.fp1WCC?.name);
-    set('sr-fp1-wcc-pts',champs.fp1WCC?.pts!=null?champs.fp1WCC.pts+' PTS':'');
-    set('sr-fp2-wdc-name',champs.fp2WDC?.name);
-    set('sr-fp2-wdc-pts',champs.fp2WDC?.pts!=null?champs.fp2WDC.pts+' PTS':'');
-    set('sr-fp2-wcc-name',champs.fp2WCC?.name);
-    set('sr-fp2-wcc-pts',champs.fp2WCC?.pts!=null?champs.fp2WCC.pts+' PTS':'');
-  }else{
-    const f1d=DB.fp1.drivers.slice().sort((a,b)=>b.pts-a.pts);
-    const f2d=DB.fp2.drivers.slice().sort((a,b)=>b.pts-a.pts);
-    const f1t=DB.fp1.teams.slice().sort((a,b)=>b.pts-a.pts);
-    const f2t=DB.fp2.teams.slice().sort((a,b)=>b.pts-a.pts);
-    set('sr-fp1-wdc-name',f1d[0]?.name);set('sr-fp1-wdc-pts',f1d[0]?.pts!=null?f1d[0].pts+' PTS':'');
-    set('sr-fp1-wcc-name',f1t[0]?.name);set('sr-fp1-wcc-pts',f1t[0]?.pts!=null?f1t[0].pts+' PTS':'');
-    set('sr-fp2-wdc-name',f2d[0]?.name);set('sr-fp2-wdc-pts',f2d[0]?.pts!=null?f2d[0].pts+' PTS':'');
-    set('sr-fp2-wcc-name',f2t[0]?.name);set('sr-fp2-wcc-pts',f2t[0]?.pts!=null?f2t[0].pts+' PTS':'');
-  }
-
-  ov.classList.add('sr-active');
-  ph1.style.display='flex';ph2.style.display='none';ph3.style.display='none';
-
-  await _srWait(5000);
-
-  ph1.style.display='none';ph2.style.display='flex';
-
-  for(let i=10;i>=0;i--){
-    cdNum.textContent=i;
-    cdNum.style.animation='none';
-    cdNum.offsetHeight;
-    cdNum.style.animation='';
-    flash.style.transition='none';
-    flash.style.opacity=(i===0?'.45':'.18');
-    setTimeout(()=>{flash.style.transition='opacity .12s';flash.style.opacity='0';},60);
-    ov.classList.add('sr-shaking');
-    setTimeout(()=>ov.classList.remove('sr-shaking'),320);
-    await _srWait(880);
-  }
-
-  ph2.style.display='none';ph3.style.display='flex';
-  flash.style.transition='none';flash.style.opacity='.6';
-  setTimeout(()=>{flash.style.transition='opacity .3s';flash.style.opacity='0';},100);
-
-  await _srWait(3200);
-
-  ov.style.transition='opacity .9s';
-  ov.style.opacity='0';
-  await _srWait(900);
-  ov.classList.remove('sr-active');
-  ov.style.opacity='';ov.style.transition='';
-
-  try{
-    if(JSONBIN_ENABLED){
-      const r=await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`,{headers:{'X-Master-Key':JSONBIN_KEY,'X-Bin-Meta':false}});
-      if(r.ok){const d=await r.json();DB=sanitizeDB(d);}
-    }
-  }catch(e){}
-  render();updateTicker();
-}
-function _srWait(ms){return new Promise(r=>setTimeout(r,ms));}
-</script>
-
-
-<script>
-// ═══ PACK OPENING ════════════════════════════════════
-let _packCards = [];
-let _packIdx = 0;
-let _packRevealing = false;
-
-function buildCardPool(){
-  const pool = [];
-  ['fp1','fp2'].forEach(div=>{
-    const srt = [...DB[div].drivers].sort((a,b)=>b.pts-a.pts);
-    const leader = srt[0]?.pts||0;
-    const winMap={}, poleMap={}, podiumMap={};
-    DB[div].drivers.forEach(d=>{winMap[d.code]=0;poleMap[d.code]=d.poles||0;podiumMap[d.code]=0;});
-    DB[div].schedule.forEach(race=>{
-      if(!race.results) return;
-      race.results.forEach(r=>{
-        if(r.pos===1&&!r.dnf) winMap[r.driver]=(winMap[r.driver]||0)+1;
-        if(r.pos<=3&&!r.dnf) podiumMap[r.driver]=(podiumMap[r.driver]||0)+1;
-      });
-    });
-    srt.forEach((dr,i)=>{
-      pool.push({
-        ...dr,
-        div, divLabel: div==='fp1'?DB.settings.fp1Name:DB.settings.fp2Name,
-        rarity: getRarity(i+1), rankInDiv: i+1,
-        teamColor: DB[div].teams[dr.team]?.color||'#555',
-        teamName: DB[div].teams[dr.team]?.name||'—',
-        wins: winMap[dr.code]||0,
-        podiums: podiumMap[dr.code]||0,
-        poles: poleMap[dr.code]||0,
-        leader,
-      });
-    });
-  });
-  return pool;
-}
-
-function poolByType(type, pool){
-  if(type==='standard') return pool;
-  if(type==='premium') return pool.filter(c=>c.rarity==='epic'||c.rarity==='rare'||c.rarity==='legendary');
-  if(type==='elite') return pool.filter(c=>c.rarity==='legendary'||c.rarity==='epic');
-  return pool;
-}
-
-function pickPack(type, pool){
-  // Draw 5 cards, no full duplicates (allow if pool tiny)
-  const eligible = poolByType(type, pool);
-  const fallback = pool;
-  const drawn = [];
-  const used = new Set();
-
-  // For premium: guarantee ≥1 epic+; for elite: guarantee ≥1 legendary
-  const guarantees = [];
+function pickPack(type){
+  const eligible = poolByType(type);
+  const fallback = CARDS;
+  if(!eligible.length && !fallback.length) return [];
+  const src = eligible.length ? eligible : fallback;
+  const drawn=[], used=new Set();
+  // Guarantees
   if(type==='premium'){
-    const epics = eligible.filter(c=>c.rarity==='epic'||c.rarity==='legendary');
-    if(epics.length) guarantees.push(epics[Math.floor(Math.random()*epics.length)]);
+    const epics=src.filter(c=>c.rarity==='epic'||c.rarity==='legendary');
+    if(epics.length){ const g=epics[Math.floor(Math.random()*epics.length)]; drawn.push(g); used.add(g.id); }
   }
   if(type==='elite'){
-    const legs = eligible.filter(c=>c.rarity==='legendary');
-    if(legs.length) guarantees.push(legs[Math.floor(Math.random()*legs.length)]);
+    const legs=src.filter(c=>c.rarity==='legendary');
+    if(legs.length){ const g=legs[Math.floor(Math.random()*legs.length)]; drawn.push(g); used.add(g.id); }
   }
-
-  for(const g of guarantees){
-    if(drawn.length<5){ drawn.push(g); used.add(g.code+'_'+g.div); }
-  }
-
   let attempts=0;
-  while(drawn.length<5&&attempts<200){
+  while(drawn.length<5&&attempts<300){
     attempts++;
-    const src = eligible.length>=5?eligible:fallback;
-    const pick = src[Math.floor(Math.random()*src.length)];
-    const key = pick.code+'_'+pick.div;
-    if(!used.has(key)||pool.length<=5){
-      drawn.push(pick);
-      used.add(key);
-    }
+    const pick=src[Math.floor(Math.random()*src.length)];
+    if(!used.has(pick.id)||src.length<=5){ drawn.push(pick); used.add(pick.id); }
   }
-
-  // Shuffle so guarantee isn't always first
-  for(let i=drawn.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [drawn[i],drawn[j]]=[drawn[j],drawn[i]];
-  }
+  // Shuffle
+  for(let i=drawn.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[drawn[i],drawn[j]]=[drawn[j],drawn[i]];}
   return drawn;
 }
 
 function packOpen(){
+  if(!FANTASY_ME){ showSection('fantasy'); return; }
+  const me=FANTASY_USERS.find(u=>u.username===FANTASY_ME.username)||FANTASY_ME;
+  document.getElementById('pack-balance-val').textContent=(me.credits||0).toLocaleString();
   document.getElementById('pack-overlay').classList.add('active');
   packShowScreen('select');
   document.body.style.overflow='hidden';
@@ -2386,185 +1985,123 @@ function packClose(){
 }
 
 function packShowScreen(name){
-  document.getElementById('pack-select-screen').style.display = name==='select'?'flex':'none';
-  document.getElementById('pack-opening-screen').style.display = name==='opening'?'flex':'none';
-  document.getElementById('pack-results-screen').style.display = name==='results'?'flex':'none';
+  document.getElementById('pack-select-screen').style.display=name==='select'?'flex':'none';
+  document.getElementById('pack-opening-screen').style.display=name==='opening'?'flex':'none';
+  document.getElementById('pack-results-screen').style.display=name==='results'?'flex':'none';
 }
 
-function packStart(type){
-  const pool = buildCardPool();
-  if(!pool.length){ alert('No drivers in the database yet!'); return; }
-  _packCards = pickPack(type, pool);
-  _packIdx = 0;
-  _packRevealing = false;
+async function packStart(type){
+  if(!FANTASY_ME){ packClose(); showSection('fantasy'); return; }
+  if(!CARDS.length){ alert('No cards defined yet! Add cards to the CARDS array.'); return; }
+  const me=FANTASY_USERS.find(u=>u.username===FANTASY_ME.username)||FANTASY_ME;
+  const cost=PACK_COSTS[type];
+  const credits=me.credits||0;
+  if(credits<cost){
+    const balEl=document.getElementById('pack-balance-val');
+    balEl.style.color='var(--red)';
+    balEl.textContent=credits.toLocaleString()+' — need '+cost;
+    setTimeout(()=>{balEl.style.color='var(--yellow)';balEl.textContent=credits.toLocaleString();},2000);
+    return;
+  }
+  me.credits=credits-cost;
+  FANTASY_ME.credits=me.credits;
+  sessionStorage.setItem('fpFantasyUser',JSON.stringify(FANTASY_ME));
+  await saveFantasyUsers();
+  document.getElementById('pack-balance-val').textContent=me.credits.toLocaleString();
+  _packCards=pickPack(type);
+  _packType=type;
+  _packIdx=0;
+  _packRevealing=false;
   packShowScreen('opening');
-  packShowCard(_packIdx);
+  packShowCard(0);
 }
 
 function packShowCard(idx){
-  const c = _packCards[idx];
-  // Reset flip
-  const reveal = document.getElementById('pack-card-reveal');
+  const c=_packCards[idx];
+  const reveal=document.getElementById('pack-card-reveal');
   reveal.classList.remove('revealed');
   reveal.style.transition='none';
-  setTimeout(()=>{ reveal.style.transition=''; },50);
-
-  // Cover colour hint
-  const top = document.getElementById('pack-cover-top');
-  const coverColor = c.rarity==='legendary'?'linear-gradient(90deg,var(--yellow),var(--orange),var(--yellow))':
-    c.rarity==='epic'?'var(--purple)':c.rarity==='rare'?'var(--blue)':'#222';
-  top.style.background = coverColor;
-
-  // Pre-build the card face HTML
-  document.getElementById('pack-card-slot').innerHTML = buildMiniCardHTML(c);
-
-  document.getElementById('pack-progress').textContent = `CARD ${idx+1} OF ${_packCards.length}`;
-  document.getElementById('pack-hint').textContent = 'TAP CARD TO REVEAL';
-  _packRevealing = false;
-
-  // Glow hint on cover
-  const glowCol = c.rarity==='legendary'?'rgba(255,215,0,.08)':c.rarity==='epic'?'rgba(139,0,255,.06)':c.rarity==='rare'?'rgba(0,87,255,.05)':'transparent';
-  document.getElementById('pack-bg-glow').style.background = `radial-gradient(ellipse at 50% 50%,${glowCol},transparent 70%)`;
+  setTimeout(()=>{reveal.style.transition='';},50);
+  const top=document.getElementById('pack-cover-top');
+  top.style.background=rarityBarBg(c.rarity);
+  document.getElementById('pack-card-slot').innerHTML=buildCardFront(c,'height:100%');
+  document.getElementById('pack-progress').textContent=`CARD ${idx+1} OF ${_packCards.length}`;
+  document.getElementById('pack-hint').textContent='TAP CARD TO REVEAL';
+  _packRevealing=false;
+  const glowMap={legendary:'rgba(255,215,0,.08)',epic:'rgba(139,0,255,.06)',rare:'rgba(0,87,255,.05)',common:'transparent'};
+  document.getElementById('pack-bg-glow').style.background=`radial-gradient(ellipse at 50% 50%,${glowMap[c.rarity]},transparent 70%)`;
 }
 
 function packRevealCard(){
   if(_packRevealing) return;
-  _packRevealing = true;
-
-  const c = _packCards[_packIdx];
-  const reveal = document.getElementById('pack-card-reveal');
-  reveal.classList.add('revealed');
-
-  // Flash
-  const flash = document.getElementById('pack-flash');
-  const flashClass = 'flash-'+c.rarity;
-  flash.className = flashClass;
+  _packRevealing=true;
+  const c=_packCards[_packIdx];
+  document.getElementById('pack-card-reveal').classList.add('revealed');
+  const flash=document.getElementById('pack-flash');
+  flash.className='flash-'+c.rarity;
   flash.style.opacity='1';
+  setTimeout(()=>{flash.style.transition='opacity .4s';flash.style.opacity='0';setTimeout(()=>{flash.style.transition='';flash.className='';},400);},80);
+  document.getElementById('pack-hint').textContent=_packIdx<_packCards.length-1?'TAP FOR NEXT CARD':'SEE ALL CARDS';
   setTimeout(()=>{
-    flash.style.transition='opacity .4s';
-    flash.style.opacity='0';
-    setTimeout(()=>{ flash.style.transition=''; flash.className=''; },400);
-  },80);
-
-  document.getElementById('pack-hint').textContent = _packIdx < _packCards.length-1 ? 'TAP FOR NEXT CARD' : 'SEE ALL CARDS';
-
-  setTimeout(()=>{
-    document.getElementById('pack-stage').onclick = ()=>{
-      if(_packIdx < _packCards.length-1){
+    document.getElementById('pack-stage').onclick=()=>{
+      if(_packIdx<_packCards.length-1){
         _packIdx++;
         packShowCard(_packIdx);
-        document.getElementById('pack-stage').onclick = packRevealCard;
+        document.getElementById('pack-stage').onclick=packRevealCard;
       } else {
-        packShowResults();
+        packSaveAndShowResults();
       }
     };
   },500);
 }
 
+async function packSaveAndShowResults(){
+  if(FANTASY_ME&&FANTASY_ENABLED){
+    const me=FANTASY_USERS.find(u=>u.username===FANTASY_ME.username)||FANTASY_ME;
+    if(!me.cardCollection) me.cardCollection=[];
+    _packCards.forEach(c=>{
+      me.cardCollection.push({id:c.id, rarity:c.rarity, pulledAt:Date.now()});
+    });
+    FANTASY_ME.cardCollection=me.cardCollection;
+    FANTASY_ME.credits=me.credits;
+    sessionStorage.setItem('fpFantasyUser',JSON.stringify(FANTASY_ME));
+    await saveFantasyUsers();
+  }
+  packShowResults();
+}
+
 function packShowResults(){
   packShowScreen('results');
   document.getElementById('pack-bg-glow').style.background='';
-  const grid = document.getElementById('pack-results-grid');
-  grid.innerHTML = _packCards.map((c,i)=>`
+  const grid=document.getElementById('pack-results-grid');
+  grid.innerHTML=_packCards.map((c,i)=>`
     <div class="pack-result-card" id="pr-${i}">
       <div class="pack-result-wrap">
         <div class="pack-result-inner">
-          <div class="pack-result-face">${buildMiniCardHTML(c, true)}</div>
-          <div class="pack-result-face pack-result-back-face">${buildMiniBackHTML(c)}</div>
+          <div class="pack-result-face">${buildCardFront(c,'height:100%')}</div>
+          <div class="pack-result-face pack-result-back-face">${buildCardBack(c)}</div>
         </div>
       </div>
-    </div>
-  `).join('');
-
-  // Stagger reveal
+    </div>`).join('');
   _packCards.forEach((_,i)=>{
     setTimeout(()=>{
       document.getElementById('pr-'+i)?.classList.add('shown');
-      // Flash on each result too
-      const flash = document.getElementById('pack-flash');
-      flash.className = 'flash-'+_packCards[i].rarity;
+      const flash=document.getElementById('pack-flash');
+      flash.className='flash-'+_packCards[i].rarity;
       flash.style.opacity='.3';
-      setTimeout(()=>{ flash.style.transition='opacity .3s';flash.style.opacity='0';setTimeout(()=>{flash.style.transition='';flash.className='';},300);},60);
-    }, i*160);
+      setTimeout(()=>{flash.style.transition='opacity .3s';flash.style.opacity='0';setTimeout(()=>{flash.style.transition='';flash.className='';},300);},60);
+    },i*160);
   });
-
-  // Count legendaries/epics for title
-  const legs = _packCards.filter(c=>c.rarity==='legendary').length;
-  const epics = _packCards.filter(c=>c.rarity==='epic').length;
-  let highlight = legs?`<span style="color:var(--yellow)">${legs} LEGENDARY!</span>`:epics?`<span style="color:var(--purple)">${epics} EPIC!</span>`:`<span style="color:var(--red)">${_packCards.length} Cards</span>`;
-  document.getElementById('pack-results-title').innerHTML = `Pack Results · ${highlight}`;
+  const legs=_packCards.filter(c=>c.rarity==='legendary').length;
+  const epics=_packCards.filter(c=>c.rarity==='epic').length;
+  const highlight=legs?`<span style="color:var(--yellow)">${legs} LEGENDARY!</span>`:epics?`<span style="color:var(--purple)">${epics} EPIC!</span>`:`<span style="color:var(--red)">${_packCards.length} Cards</span>`;
+  document.getElementById('pack-results-title').innerHTML=`Pack Results · ${highlight}`;
 }
 
 function packAgain(){
+  const me=FANTASY_USERS.find(u=>u.username===FANTASY_ME?.username)||FANTASY_ME;
+  if(me) document.getElementById('pack-balance-val').textContent=(me.credits||0).toLocaleString();
   packShowScreen('select');
-}
-
-function buildMiniCardHTML(c, small=false){
-  const pc = c.rarity==='legendary'?'var(--yellow)':c.rarity==='epic'?'var(--purple)':c.rarity==='rare'?'var(--blue)':'white';
-  const rarityLabel = {legendary:'LEGENDARY',epic:'EPIC',rare:'RARE',common:'COMMON'}[c.rarity]||'COMMON';
-  const divColor = c.div==='fp1'?'var(--red)':'var(--blue)';
-  return `<div class="tc-card rarity-${c.rarity}" style="width:100%;height:100%;">
-    <div class="tc-rarity-bar"></div>
-    <div class="tc-photo-area" style="${small?'height:120px':'height:200px'}">
-      <div class="tc-photo-bg" style="background:radial-gradient(ellipse at 50% 0%,${c.teamColor}22,#050505)"></div>
-      ${c.photo?`<img class="tc-photo" src="${c.photo}" alt="${c.name}" crossorigin="anonymous" onerror="this.style.display='none'"><div class="tc-photo-placeholder" style="display:none;font-size:${small?'28px':'44px'}">${c.code}</div>`:`<div class="tc-photo-placeholder" style="font-size:${small?'28px':'44px'}">${c.code}</div>`}
-      <div class="tc-photo-grad"></div>
-      <div class="tc-rarity-badge" style="font-size:6px;padding:2px 6px">${rarityLabel}</div>
-      <div class="tc-pos-badge" style="color:${pc};font-size:${small?'9px':'11px'}">P${c.rankInDiv}</div>
-      <div class="tc-team-bar" style="background:${c.teamColor}"></div>
-    </div>
-    <div class="tc-info" style="padding:8px 10px;gap:6px;">
-      <div>
-        <div class="tc-name" style="font-size:${small?'12px':'14px'}">${c.name}</div>
-        <div class="tc-team-name">${c.teamName}</div>
-      </div>
-      <div class="tc-stats-mini">
-        <div class="tc-stat-mini"><div class="tc-stat-mini-val" style="color:var(--yellow);font-size:11px">${c.wins}</div><div class="tc-stat-mini-lbl">W</div></div>
-        <div class="tc-stat-mini"><div class="tc-stat-mini-val" style="color:var(--purple);font-size:11px">${c.poles}</div><div class="tc-stat-mini-lbl">P</div></div>
-        <div class="tc-stat-mini"><div class="tc-stat-mini-val" style="color:${pc};font-size:11px">${c.pts}</div><div class="tc-stat-mini-lbl">PTS</div></div>
-      </div>
-    </div>
-  </div>`;
-}
-
-function buildMiniBackHTML(c){
-  const pc = c.rarity==='legendary'?'var(--yellow)':c.rarity==='epic'?'var(--purple)':c.rarity==='rare'?'var(--blue)':'white';
-  const ptsPct = c.leader>0?Math.round((c.pts/c.leader)*100):0;
-  const barColor = c.rarity==='legendary'?'var(--yellow)':c.rarity==='epic'?'var(--purple)':c.rarity==='rare'?'var(--blue)':'#333';
-  return `<div class="tc-card-back" style="width:100%;height:100%;border-color:${c.rarity==='legendary'?'rgba(255,215,0,.25)':c.rarity==='epic'?'rgba(139,0,255,.25)':c.rarity==='rare'?'rgba(0,87,255,.2)':'#1c1c1c'}">
-    <div class="tc-back-header" style="border-top:2px solid ${c.teamColor};padding:10px 12px 8px;">
-      <div class="tc-back-code" style="color:${c.teamColor};font-size:18px">${c.code}</div>
-      <div>
-        <div class="tc-back-full-name" style="font-size:11px">${c.name}</div>
-        <div class="tc-back-team">${c.teamName}</div>
-      </div>
-    </div>
-    <div class="tc-back-stats" style="padding:8px 12px;gap:3px;">
-      <div class="tc-back-stat-row">
-        <div><div class="tc-back-stat-lbl">Points</div><div class="tc-back-stat-bar-wrap"><div class="tc-back-stat-bar" style="width:${ptsPct}%;background:${barColor}"></div></div></div>
-        <div class="tc-back-stat-val" style="color:${pc};font-size:11px">${c.pts}</div>
-      </div>
-      <div class="tc-back-stat-row">
-        <div><div class="tc-back-stat-lbl">Wins</div></div>
-        <div class="tc-back-stat-val" style="color:var(--yellow);font-size:11px">${c.wins}</div>
-      </div>
-      <div class="tc-back-stat-row">
-        <div><div class="tc-back-stat-lbl">Podiums</div></div>
-        <div class="tc-back-stat-val" style="color:#CD7F32;font-size:11px">${c.podiums}</div>
-      </div>
-      <div class="tc-back-stat-row">
-        <div><div class="tc-back-stat-lbl">Poles</div></div>
-        <div class="tc-back-stat-val" style="color:var(--purple);font-size:11px">${c.poles}</div>
-      </div>
-    </div>
-    <div class="tc-back-footer" style="padding:6px 12px;">
-      <div>
-        <div class="tc-back-pts" style="color:${barColor};font-size:16px">${c.pts}</div>
-        <div class="tc-back-pts-lbl">PTS</div>
-      </div>
-      <div style="font-family:var(--f1);font-size:7px;font-weight:700;letter-spacing:2px;padding:3px 8px;background:${c.div==='fp1'?'rgba(232,0,29,.15)':'rgba(0,87,255,.15)'};color:${c.div==='fp1'?'var(--red)':'var(--blue)'};clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%)">${c.divLabel}</div>
-    </div>
-  </div>`;
 }
 </script>
 
@@ -2625,12 +2162,14 @@ function buildMiniBackHTML(c){
       <div class="pack-select-title">Open a <span>Pack</span></div>
       <div class="pack-select-sub" style="margin-top:8px">Choose your pack · 5 cards per pack</div>
     </div>
+    <div id="pack-balance-line" style="font-family:var(--f1);font-size:11px;letter-spacing:2px;color:var(--sub)">Balance: <span style="color:var(--yellow)" id="pack-balance-val">0</span> Credits</div>
     <div class="pack-types">
       <div class="pack-type-card pack-standard" onclick="packStart('standard')">
         <div class="pack-icon">📦</div>
         <div class="pack-name">Standard</div>
         <div class="pack-desc">Mixed pool from both divisions. Any rarity possible.</div>
         <div class="pack-odds">COMMON · RARE · EPIC · LEGENDARY</div>
+        <div style="font-family:var(--f1);font-size:16px;font-weight:900;color:var(--blue);margin:8px 0 4px">60 Credits</div>
         <button class="pack-open-btn">OPEN PACK</button>
       </div>
       <div class="pack-type-card pack-premium" onclick="packStart('premium')">
@@ -2638,6 +2177,7 @@ function buildMiniBackHTML(c){
         <div class="pack-name">Premium</div>
         <div class="pack-desc">Guaranteed at least one Epic or better card.</div>
         <div class="pack-odds">RARE · EPIC · LEGENDARY</div>
+        <div style="font-family:var(--f1);font-size:16px;font-weight:900;color:var(--purple);margin:8px 0 4px">250 Credits</div>
         <button class="pack-open-btn">OPEN PACK</button>
       </div>
       <div class="pack-type-card pack-elite" onclick="packStart('elite')">
@@ -2645,6 +2185,7 @@ function buildMiniBackHTML(c){
         <div class="pack-name">Elite</div>
         <div class="pack-desc">Top drivers only. Guaranteed Legendary card.</div>
         <div class="pack-odds">EPIC · LEGENDARY</div>
+        <div style="font-family:var(--f1);font-size:16px;font-weight:900;color:var(--yellow);margin:8px 0 4px">900 Credits</div>
         <button class="pack-open-btn">OPEN PACK</button>
       </div>
     </div>
