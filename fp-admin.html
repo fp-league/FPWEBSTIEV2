@@ -544,6 +544,7 @@ function renderLiveRace(){document.querySelectorAll('.page').forEach(function(p)
             <option value="standard">📦 Standard (5 cards — any rarity)</option>
             <option value="premium">💜 Premium (5 cards — guaranteed Epic+)</option>
             <option value="elite">⭐ Elite (5 cards — guaranteed Legendary)</option>
+            <option value="special">🔥 Special (5 cards — Legend/Legendary only)</option>
           </select>
         </div>
         <div style="font-size:11px;color:var(--sub);margin-bottom:12px">Credits will NOT be deducted. Cards are added directly to their collection.</div>
@@ -1810,8 +1811,8 @@ function deleteHof(i){
 
 let ADMIN_CARDS = []; // local editable copy
 
-const RARITY_COLORS={secret:'var(--black)',legendary:'var(--yellow)',epic:'var(--purple)',rare:'var(--blue)',common:'var(--sub)'};
-const RARITY_LABELS={secret:'👤 SECRET',legendary:'⭐ LEGENDARY',epic:'💜 EPIC',rare:'🔵 RARE',common:'⬜ COMMON'};
+const RARITY_COLORS={legend:'var(--orange)',secret:'#00FFD0',legendary:'var(--yellow)',epic:'var(--purple)',rare:'var(--blue)',common:'var(--sub)'};
+const RARITY_LABELS={legend:'👑 LEGEND',secret:'👤 SECRET',legendary:'⭐ LEGENDARY',epic:'💜 EPIC',rare:'🔵 RARE',common:'⬜ COMMON'};
 
 function renderCards(){
   // Load from DB.cards if available
@@ -1965,7 +1966,9 @@ async function givePackToPlayer(){
   if(!user){ toast('Player not found.','error'); return; }
 
   // Pick 5 cards using same logic as public site
-  const pool = packType==='elite'
+  const pool = packType==='special'
+    ? ADMIN_CARDS.filter(c=>c.rarity==='legend'||c.rarity==='legendary'||c.rarity==='epic')
+    : packType==='elite'
     ? ADMIN_CARDS.filter(c=>c.rarity==='legendary'||c.rarity==='epic')
     : packType==='premium'
     ? ADMIN_CARDS.filter(c=>c.rarity==='legendary'||c.rarity==='epic'||c.rarity==='rare')
@@ -2368,6 +2371,7 @@ showGate();
         <button class="btn btn-secondary btn-sm" onclick="document.getElementById('credits-amount').value=250">250 (Premium)</button>
         <button class="btn btn-secondary btn-sm" onclick="document.getElementById('credits-amount').value=500">500</button>
         <button class="btn btn-secondary btn-sm" onclick="document.getElementById('credits-amount').value=900">900 (Elite)</button>
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('credits-amount').value=1500">1500 (Special)</button>
         <button class="btn btn-secondary btn-sm" onclick="document.getElementById('credits-amount').value=1000">1000</button>
       </div>
     </div>
