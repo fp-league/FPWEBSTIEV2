@@ -2199,7 +2199,7 @@ function poolByType(type){
   if(type==='standard') return CARDS;
   if(type==='premium') return CARDS.filter(c=>c.rarity==='epic'||c.rarity==='rare'||c.rarity==='legendary');
   if(type==='elite') return CARDS.filter(c=>c.rarity==='legendary'||c.rarity==='epic');
-  if(type==='special') return CARDS.filter(c=>c.rarity==='legeND'c.rarity==='secret'||c.rarity==='legendary'||c.rarity==='epic');
+  if(type==='special') return CARDS.filter(c=>c.rarity==='legend'||c.rarity==='legendary'||c.rarity==='epic');
   return CARDS;
 }
 
