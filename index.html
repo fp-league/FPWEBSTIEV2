@@ -2031,18 +2031,19 @@ function mergeDbCards(){
 
 // ── HELPERS ────────────────────────────────────────────────────────
 function rarityLabel(r){
-  return {secret:'SECRET',legendary:'LEGENDARY',epic:'EPIC',rare:'RARE',common:'COMMON'}[r]||'COMMON';
+  return {legend:'LEGEND',secret:'SECRET',legendary:'LEGENDARY',epic:'EPIC',rare:'RARE',common:'COMMON'}[r]||'COMMON';
 }
 function rarityColor(r){
-  return {secret:'var(--black)',legendary:'var(--yellow)',epic:'var(--purple)',rare:'var(--blue)',common:'#555'}[r];
+  return {legend:'var(--orange)',secret:'var(--black)',legendary:'var(--yellow)',epic:'var(--purple)',rare:'var(--blue)',common:'#555'}[r];
 }
 function rarityBorder(r){
-  return {secret:'rgba(255,255,255,.15)',legendary:'rgba(255,215,0,.35)',epic:'rgba(139,0,255,.35)',rare:'rgba(0,87,255,.3)',common:'#1a1a1a'}[r];
+  return {legend:'rgba(255,165,0,.35)',secret:'rgba(255,255,255,.15)',legendary:'rgba(255,215,0,.35)',epic:'rgba(139,0,255,.35)',rare:'rgba(0,87,255,.3)',common:'#1a1a1a'}[r];
 }
 function rarityBarBg(r){
   return {
 
-secret:'linear-gradient(90deg,#00FFD0,#00BFA5,#00FFD0) 0 0 / 200% 100%',
+   legend:'linear-gradient(90deg,#FF6B00,#FFD700,#FF6B00) 0 0 / 200% 100%',
+   secret:'linear-gradient(90deg,#00FFD0,#00BFA5,#00FFD0) 0 0 / 200% 100%',
     legendary:'linear-gradient(90deg,#FFD700,#FF6B00,#FFD700) 0 0 / 200% 100%',
     epic:'linear-gradient(90deg,#8B00FF,#BF7FFF,#8B00FF) 0 0 / 200% 100%',
     rare:'linear-gradient(90deg,#0057FF,#4db3ff,#0057FF) 0 0 / 200% 100%',
@@ -2191,13 +2192,14 @@ function buildCardBack(c){
 }
 
 // ── PACK OPENING ──────────────────────────────────────────────────
-const PACK_COSTS={standard:60,premium:250,elite:900};
+const PACK_COSTS={standard:60,premium:250,elite:900,special:1500};
 let _packCards=[], _packIdx=0, _packRevealing=false, _packType='standard';
 
 function poolByType(type){
   if(type==='standard') return CARDS;
   if(type==='premium') return CARDS.filter(c=>c.rarity==='epic'||c.rarity==='rare'||c.rarity==='legendary');
   if(type==='elite') return CARDS.filter(c=>c.rarity==='legendary'||c.rarity==='epic');
+  if(type==='special') return CARDS.filter(c=>c.rarity==='legeND'c.rarity==='secret'||c.rarity==='legendary'||c.rarity==='epic');
   return CARDS;
 }
 
@@ -2428,6 +2430,14 @@ function packAgain(){
     </div>
     <div id="pack-balance-line" style="font-family:var(--f1);font-size:11px;letter-spacing:2px;color:var(--sub)">Balance: <span style="color:var(--yellow)" id="pack-balance-val">0</span> Credits</div>
     <div class="pack-types">
+      <div class="pack-type-card pack-special" onclick="packStart('special')">
+        <div class="pack-icon">🎁</div>
+        <div class="pack-name">Special</div>
+        <div class="pack-desc">Mixed pool from both divisions. Any rarity possible.</div>
+        <div class="pack-odds">SECRET · EPIC · LEGEND</div>0
+        <div style="font-family:var(--f1);font-size:16px;font-weight:900;color:var(--blue);margin:8px 0 4px">60 Credits</div>
+        <button class="pack-open-btn">OPEN PACK</button>
+      </div>
       <div class="pack-type-card pack-standard" onclick="packStart('standard')">
         <div class="pack-icon">📦</div>
         <div class="pack-name">Standard</div>
