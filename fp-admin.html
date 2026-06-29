@@ -533,6 +533,7 @@ function renderLiveRace(){document.querySelectorAll('.page').forEach(function(p)
             <option value="standard">📦 Standard (5 cards — any rarity)</option>
             <option value="premium">💜 Premium (5 cards — guaranteed Epic+)</option>
             <option value="elite">⭐ Elite (5 cards — guaranteed Legendary)</option>
+            <option value="special">🔥 Special (5 cards — Legend/Legendary only)</option>
           </select>
         </div>
         <div style="font-size:11px;color:var(--sub);margin-bottom:12px">Credits will NOT be deducted. Cards are added directly to their collection.</div>
@@ -1799,8 +1800,8 @@ function deleteHof(i){
 
 let ADMIN_CARDS = []; // local editable copy
 
-const RARITY_COLORS={secret:'var(--black)',legendary:'var(--yellow)',epic:'var(--purple)',rare:'var(--blue)',common:'var(--sub)'};
-const RARITY_LABELS={secret:'👤 SECRET',legendary:'⭐ LEGENDARY',epic:'💜 EPIC',rare:'🔵 RARE',common:'⬜ COMMON'};
+const RARITY_COLORS={legend:'var(--orange)',secret:'#00FFD0',legendary:'var(--yellow)',epic:'var(--purple)',rare:'var(--blue)',common:'var(--sub)',black:'rgba(255,255,255,.5)'};
+const RARITY_LABELS={legend:'👑 LEGEND',secret:'👤 SECRET',legendary:'⭐ LEGENDARY',epic:'💜 EPIC',rare:'🔵 RARE',common:'⬜ COMMON',black:'⬛ BLACK'};
 
 function renderCards(){
   // Load from DB.cards if available
@@ -1954,7 +1955,9 @@ async function givePackToPlayer(){
   if(!user){ toast('Player not found.','error'); return; }
 
   // Pick 5 cards using same logic as public site
-  const pool = packType==='elite'
+  const pool = packType==='special'
+    ? ADMIN_CARDS.filter(c=>c.rarity==='legend'||c.rarity==='legendary')
+    : packType==='elite'
     ? ADMIN_CARDS.filter(c=>c.rarity==='legendary'||c.rarity==='epic')
     : packType==='premium'
     ? ADMIN_CARDS.filter(c=>c.rarity==='legendary'||c.rarity==='epic'||c.rarity==='rare')
@@ -2304,6 +2307,7 @@ showGate();
             <option value="epic">💜 Epic</option>
             <option value="rare">🔵 Rare</option>
             <option value="common" selected>⬜ Common</option>
+            <option value="black">⬛ Black</option>
           </select>
         </div>
       </div>

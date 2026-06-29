@@ -1861,13 +1861,13 @@ function mergeDbCards(){
 
 // ── HELPERS ────────────────────────────────────────────────────────
 function rarityLabel(r){
-  return {legend:'LEGEND',secret:'SECRET',legendary:'LEGENDARY',epic:'EPIC',rare:'RARE',common:'COMMON'}[r]||'COMMON';
+  return {legend:'LEGEND',secret:'SECRET',legendary:'LEGENDARY',epic:'EPIC',rare:'RARE',common:'COMMON',legend:'LEGEND',black:'BLACK'}[r]||'COMMON';
 }
 function rarityColor(r){
-  return {legend:'var(--orange)',secret:'var(--black)',legendary:'var(--yellow)',epic:'var(--purple)',rare:'var(--blue)',common:'#555'}[r];
+  return {legend:'var(--orange)',secret:'var(--black)',legendary:'var(--yellow)',epic:'var(--purple)',rare:'var(--blue)',common:'#555',legend:'var(--orange)',black:'rgba(255,255,255,.5)'}[r];
 }
 function rarityBorder(r){
-  return {legend:'rgba(255,165,0,.35)',secret:'rgba(255,255,255,.15)',legendary:'rgba(255,215,0,.35)',epic:'rgba(139,0,255,.35)',rare:'rgba(0,87,255,.3)',common:'#1a1a1a'}[r];
+  return {legend:'rgba(255,165,0,.35)',secret:'rgba(255,255,255,.15)',legendary:'rgba(255,215,0,.35)',epic:'rgba(139,0,255,.35)',rare:'rgba(0,87,255,.3)',common:'#1a1a1a',legend:'rgba(255,128,0,.4)',black:'rgba(255,255,255,.15)'}[r];
 }
 function rarityBarBg(r){
   return {
@@ -2027,9 +2027,9 @@ let _packCards=[], _packIdx=0, _packRevealing=false, _packType='standard';
 
 function poolByType(type){
   if(type==='standard') return CARDS;
-  if(type==='premium') return CARDS.filter(c=>c.rarity==='epic'||c.rarity==='rare'||c.rarity==='legendary');
-  if(type==='elite') return CARDS.filter(c=>c.rarity==='legendary'||c.rarity==='epic');
-  if(type==='special') return CARDS.filter(c=>c.rarity==='legend'||c.rarity==='secret'||c.rarity==='legendary'||c.rarity==='epic');
+  if(type==='premium') return CARDS.filter(c=>c.rarity==='epic'||c.rarity==='rare'||c.rarity==='legendary'||c.rarity==='legend');
+  if(type==='elite') return CARDS.filter(c=>c.rarity==='legendary'||c.rarity==='epic'||c.rarity==='legend');
+  if(type==='special') return CARDS.filter(c=>c.rarity==='legend'||c.rarity==='legendary');
   return CARDS;
 }
 
